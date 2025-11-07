@@ -235,16 +235,18 @@
             });
         }
         
-        // Движение и столкновения
+        // Движение и столкновения - ИСПРАВЛЕННАЯ ЛОГИКА
         function moveBalls() {
             for (let i = balls.length - 1; i >= 0; i--) {
                 const ball = balls[i];
                 
-                // БУСТЕР: шары летят к платформе
+                // БУСТЕР
                 if (isBoosting) {
                     const targetX = playerX + 35;
                     const dx = targetX - ball.x;
-                    ball.x += dx * 0.05; // Движение к платформе
+                    ball.x += dx * 0.05;
+                    if (ball.x < 0) ball.x = 0;
+                    if (ball.x > 770) ball.x = 770;
                     ball.element.style.left = ball.x + 'px';
                     ball.element.classList.add('boosting');
                 }
@@ -252,22 +254,31 @@
                 ball.y += ball.speed;
                 ball.element.style.top = ball.y + 'px';
                 
-                // Проверка столкновения
-                if (ball.y >= 450 && ball.y <= 470 && 
-                    ball.x + 30 >= playerX && ball.x <= playerX + 100) {
+                // ИСПРАВЛЕННАЯ ПРОВЕРКА СТОЛКНОВЕНИЯ
+                // Шар должен касаться платформы, а не быть над ней
+                const ballBottom = ball.y + 30; // Низ шара
+                const ballCenterX = ball.x + 15; // Центр шара по X
+                const playerTop = 480; // Верх платформы (500 - 20)
+                const playerBottom = 500; // Низ платформы
+                
+                // Шар касается платформы
+                if (ballBottom >= playerTop && 
+                    ballBottom <= playerBottom &&
+                    ballCenterX >= playerX && 
+                    ballCenterX <= playerX + 100) {
+                    
                     ball.element.remove();
                     balls.splice(i, 1);
                     score += 10;
                     scoreDisplay.textContent = 'Очки: ' + score;
                     
-                    // Показ кнопки бустера при 1000 очков
                     if (score >= 1000 && boosterTimeLeft === 0) {
                         boosterBtn.style.display = 'block';
                     }
                     continue;
                 }
                 
-                // Шар упал
+                // Шар упал ниже экрана
                 if (ball.y > 500) {
                     ball.element.remove();
                     balls.splice(i, 1);
@@ -275,26 +286,19 @@
             }
         }
         
-        // БУСТЕР - ПРОСТАЯ И РАБОЧАЯ ВЕРСИЯ
+        // БУСТЕР
         boosterBtn.addEventListener('click', function() {
-            // 1. Вспышка
             flashOverlay.style.opacity = '0.8';
             setTimeout(() => {
                 flashOverlay.style.opacity = '0';
             }, 200);
             
-            // 2. Скрываем кнопку
             boosterBtn.style.display = 'none';
-            
-            // 3. Включаем бустер
             isBoosting = true;
-            boosterTimeLeft = 10; // 10 секунд для теста
-            
-            // 4. Показываем таймер
+            boosterTimeLeft = 10;
             boosterTimer.style.display = 'block';
             updateBoosterTimer();
             
-            // 5. Таймер обратного отсчёта
             const timer = setInterval(() => {
                 boosterTimeLeft--;
                 updateBoosterTimer();
@@ -303,8 +307,6 @@
                     isBoosting = false;
                     boosterTimer.style.display = 'none';
                     clearInterval(timer);
-                    
-                    // Убираем эффект бустера у всех шаров
                     balls.forEach(ball => {
                         ball.element.classList.remove('boosting');
                     });
@@ -317,14 +319,13 @@
         }
         
         // Запуск игры
-        setInterval(createBall, 1000);
+        setInterval(createBall, 500);
         function gameLoop() {
             moveBalls();
             requestAnimationFrame(gameLoop);
         }
         gameLoop();
         
-        // Защита от контекстного меню
         document.addEventListener('contextmenu', (e) => e.preventDefault());
     </script>
 </body>
