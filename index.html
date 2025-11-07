@@ -132,12 +132,12 @@
         let score = 0;
         let balls = [];
         let moveInterval;
-        let ballCounter = 0; // Счётчик шаров для золотого шара
+        let ballCounter = 0;
         
         // Управление с ПРАВОЙ ГРАНИЦЕЙ 500px
         function updatePlayerPosition() {
             if (playerX < 0) playerX = 0;
-            if (playerX > 500) playerX = 500; // Правая граница 500px!
+            if (playerX > 500) playerX = 500;
             player.style.left = playerX + 'px';
         }
         
@@ -206,7 +206,7 @@
             
             ballCounter++;
             
-            // Каждый 20-й шар - золотой!
+            // Каждый 20-й шар - золотой и летит к платформе!
             let isGold = false;
             if (ballCounter % 20 === 0) {
                 ball.classList.add('gold');
@@ -218,7 +218,8 @@
                 x: parseInt(ballX),
                 y: 0,
                 speed: 2 + Math.random() * 3,
-                isGold: isGold
+                isGold: isGold,
+                targetX: playerX + 50 // Цель - центр платформы
             });
         }
         
@@ -226,6 +227,14 @@
         function moveBalls() {
             for (let i = balls.length - 1; i >= 0; i--) {
                 const ball = balls[i];
+                
+                // Золотые шары летят к платформе
+                if (ball.isGold) {
+                    ball.targetX = playerX + 50;
+                    const dx = ball.targetX - (ball.x + 15);
+                    ball.x += dx * 0.1; // Движение к платформе
+                    ball.element.style.left = ball.x + 'px';
+                }
                 
                 ball.y += ball.speed;
                 ball.element.style.top = ball.y + 'px';
