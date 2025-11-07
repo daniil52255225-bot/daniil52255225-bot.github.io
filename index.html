@@ -12,6 +12,10 @@
             text-align: center;
             font-family: Arial;
             touch-action: manipulation;
+            -webkit-user-select: none;
+            user-select: none;
+            -webkit-touch-callout: none;
+            -webkit-tap-highlight-color: transparent;
         }
         #gameContainer {
             position: relative;
@@ -23,6 +27,7 @@
             border: 3px solid #00ff88;
             border-radius: 15px;
             overflow: hidden;
+            touch-action: none;
         }
         #player {
             position: absolute;
@@ -70,6 +75,10 @@
             box-shadow: 0 0 20px rgba(255,255,255,0.5);
             color: white;
             text-shadow: 1px 1px 2px black;
+            -webkit-user-select: none;
+            user-select: none;
+            -webkit-touch-callout: none;
+            -webkit-tap-highlight-color: transparent;
         }
         @keyframes rainbow {
             0% { background-position: 0% 50%; }
@@ -110,6 +119,18 @@
     </div>
 
     <script>
+        // БЛОКИРОВКА КОНТЕКСТНОГО МЕНЮ
+        document.addEventListener('contextmenu', function(e) {
+            e.preventDefault();
+            return false;
+        });
+        
+        // БЛОКИРОВКА ВЫДЕЛЕНИЯ ТЕКСТА
+        document.addEventListener('selectstart', function(e) {
+            e.preventDefault();
+            return false;
+        });
+        
         const gameContainer = document.getElementById('gameContainer');
         const player = document.getElementById('player');
         const scoreDisplay = document.getElementById('score');
@@ -136,14 +157,33 @@
         });
         
         // Управление с кнопок
-        leftBtn.addEventListener('touchstart', () => moveLeft());
-        rightBtn.addEventListener('touchstart', () => moveRight());
-        leftBtn.addEventListener('mousedown', () => moveLeft());
-        rightBtn.addEventListener('mousedown', () => moveRight());
+        leftBtn.addEventListener('touchstart', (e) => {
+            e.preventDefault();
+            moveLeft();
+        });
+        rightBtn.addEventListener('touchstart', (e) => {
+            e.preventDefault();
+            moveRight();
+        });
+        
+        leftBtn.addEventListener('mousedown', (e) => {
+            e.preventDefault();
+            moveLeft();
+        });
+        rightBtn.addEventListener('mousedown', (e) => {
+            e.preventDefault();
+            moveRight();
+        });
         
         // Отпускание кнопок
-        document.addEventListener('touchend', stopMove);
-        document.addEventListener('mouseup', stopMove);
+        document.addEventListener('touchend', (e) => {
+            e.preventDefault();
+            stopMove();
+        });
+        document.addEventListener('mouseup', (e) => {
+            e.preventDefault();
+            stopMove();
+        });
         
         let moveInterval;
         function moveLeft() {
