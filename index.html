@@ -1,20 +1,23 @@
 <!DOCTYPE html>
 <html>
 <head>
-    <title>Моя игра</title>
+    <title>Ловец шаров</title>
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <style>
         body {
             margin: 0;
-            padding: 20px;
+            padding: 10px;
             background: #0f0f23;
             color: white;
             text-align: center;
             font-family: Arial;
+            touch-action: manipulation;
         }
         #gameContainer {
             position: relative;
-            width: 800px;
-            height: 500px;
+            width: 100%;
+            max-width: 800px;
+            height: 60vh;
             margin: 0 auto;
             background: #1a1a2e;
             border: 3px solid #00ff88;
@@ -28,7 +31,8 @@
             height: 20px;
             background: linear-gradient(90deg, #00ff88, #00ccff);
             border-radius: 10px;
-            left: 350px;
+            left: 50%;
+            transform: translateX(-50%);
         }
         .ball {
             position: absolute;
@@ -36,54 +40,152 @@
             height: 30px;
             background: radial-gradient(circle, #ff4444, #cc0000);
             border-radius: 50%;
+            box-shadow: 0 0 10px red;
         }
         #score {
             font-size: 24px;
             margin: 10px;
             color: #00ff88;
         }
+        
+        /* КНОПКИ ДЛЯ ТЕЛЕФОНА */
+        #mobileControls {
+            display: flex;
+            justify-content: center;
+            gap: 50px;
+            margin: 20px auto;
+            max-width: 800px;
+        }
+        .controlBtn {
+            width: 80px;
+            height: 80px;
+            border: none;
+            border-radius: 50%;
+            font-size: 30px;
+            font-weight: bold;
+            cursor: pointer;
+            background: linear-gradient(45deg, #ff0000, #ff8000, #ffff00, #00ff00, #00ffff, #0000ff, #8000ff, #ff00ff);
+            background-size: 400% 400%;
+            animation: rainbow 3s ease infinite;
+            box-shadow: 0 0 20px rgba(255,255,255,0.5);
+            color: white;
+            text-shadow: 1px 1px 2px black;
+        }
+        @keyframes rainbow {
+            0% { background-position: 0% 50%; }
+            50% { background-position: 100% 50%; }
+            100% { background-position: 0% 50%; }
+        }
+        .controlBtn:active {
+            transform: scale(0.9);
+            box-shadow: 0 0 30px white;
+        }
+        
+        /* АДАПТИВНОСТЬ */
+        @media (max-width: 600px) {
+            .controlBtn {
+                width: 70px;
+                height: 70px;
+                font-size: 25px;
+            }
+            #mobileControls {
+                gap: 30px;
+            }
+        }
     </style>
 </head>
 <body>
-    <h1>🎮 ЛОВЕЦ ШАРОВ</h1>
+    <h1>🎮 ЛОВЕЦ ШАРОВ 🎮</h1>
     <div id="score">Очки: 0</div>
-    <p>Управление: стрелки ВЛЕВО/ВПРАВО</p>
+    <p>Управление: стрелки или кнопки ниже</p>
     
     <div id="gameContainer">
         <div id="player"></div>
+    </div>
+
+    <!-- КНОПКИ ДЛЯ ТЕЛЕФОНА -->
+    <div id="mobileControls">
+        <button class="controlBtn" id="leftBtn">←</button>
+        <button class="controlBtn" id="rightBtn">→</button>
     </div>
 
     <script>
         const gameContainer = document.getElementById('gameContainer');
         const player = document.getElementById('player');
         const scoreDisplay = document.getElementById('score');
+        const leftBtn = document.getElementById('leftBtn');
+        const rightBtn = document.getElementById('rightBtn');
         
         let playerX = 350;
         let score = 0;
         let balls = [];
         
-        // Управление
+        // Размеры для мобильных
+        const containerWidth = gameContainer.offsetWidth;
+        const playerWidth = 100;
+        
+        // Управление с клавиатуры
         document.addEventListener('keydown', (e) => {
             if (e.key === 'ArrowLeft' && playerX > 0) {
                 playerX -= 20;
             }
-            if (e.key === 'ArrowRight' && playerX < 700) {
+            if (e.key === 'ArrowRight' && playerX < containerWidth - playerWidth) {
                 playerX += 20;
             }
-            player.style.left = playerX + 'px';
+            updatePlayerPosition();
         });
+        
+        // Управление с кнопок
+        leftBtn.addEventListener('touchstart', () => moveLeft());
+        rightBtn.addEventListener('touchstart', () => moveRight());
+        leftBtn.addEventListener('mousedown', () => moveLeft());
+        rightBtn.addEventListener('mousedown', () => moveRight());
+        
+        // Отпускание кнопок
+        document.addEventListener('touchend', stopMove);
+        document.addEventListener('mouseup', stopMove);
+        
+        let moveInterval;
+        function moveLeft() {
+            clearInterval(moveInterval);
+            moveInterval = setInterval(() => {
+                if (playerX > 0) {
+                    playerX -= 5;
+                    updatePlayerPosition();
+                }
+            }, 16);
+        }
+        
+        function moveRight() {
+            clearInterval(moveInterval);
+            moveInterval = setInterval(() => {
+                if (playerX < containerWidth - playerWidth) {
+                    playerX += 5;
+                    updatePlayerPosition();
+                }
+            }, 16);
+        }
+        
+        function stopMove() {
+            clearInterval(moveInterval);
+        }
+        
+        function updatePlayerPosition() {
+            player.style.left = playerX + 'px';
+        }
         
         // Создание шаров
         function createBall() {
             const ball = document.createElement('div');
             ball.className = 'ball';
-            ball.style.left = Math.random() * 770 + 'px';
+            const ballX = Math.random() * (containerWidth - 30);
+            ball.style.left = ballX + 'px';
             ball.style.top = '0px';
             gameContainer.appendChild(ball);
             
             balls.push({
                 element: ball,
-                x: parseInt(ball.style.left),
+                x: parseInt(ballX),
                 y: 0,
                 speed: 2 + Math.random() * 3
             });
@@ -91,24 +193,28 @@
         
         // Движение шаров
         function moveBalls() {
-            balls.forEach((ball, index) => {
+            for (let i = balls.length - 1; i >= 0; i--) {
+                const ball = balls[i];
                 ball.y += ball.speed;
                 ball.element.style.top = ball.y + 'px';
                 
-                // Проверка столкновения
-                if (ball.y > 470 && ball.x > playerX - 15 && ball.x < playerX + 85) {
+                // Проверка столкновения с игроком
+                if (ball.y > gameContainer.offsetHeight - 40 && 
+                    ball.x > playerX - 15 && 
+                    ball.x < playerX + playerWidth - 15) {
+                    // Поймал шар!
                     ball.element.remove();
-                    balls.splice(index, 1);
+                    balls.splice(i, 1);
                     score += 10;
                     scoreDisplay.textContent = 'Очки: ' + score;
                 }
                 
                 // Шар упал
-                if (ball.y > 500) {
+                if (ball.y > gameContainer.offsetHeight) {
                     ball.element.remove();
-                    balls.splice(index, 1);
+                    balls.splice(i, 1);
                 }
-            });
+            }
         }
         
         // Игровой цикл
@@ -117,8 +223,10 @@
             requestAnimationFrame(gameLoop);
         }
         
+        // Запуск игры
         setInterval(createBall, 1000);
         gameLoop();
+        updatePlayerPosition();
     </script>
 </body>
 </html>
