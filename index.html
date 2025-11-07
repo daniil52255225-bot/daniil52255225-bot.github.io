@@ -68,22 +68,18 @@
         }
         #boosterBtn {
             display: none;
-            position: fixed;
-            top: 50%;
-            left: 50%;
-            transform: translate(-50%, -50%);
-            padding: 15px 30px;
-            font-size: 20px;
+            padding: 12px 20px;
+            font-size: 16px;
             font-weight: bold;
             background: linear-gradient(45deg, #ff0000, #ffff00, #00ff00, #00ffff, #0000ff, #ff00ff);
             background-size: 400% 400%;
             animation: rainbow 2s ease infinite;
             border: none;
-            border-radius: 25px;
+            border-radius: 20px;
             color: white;
             cursor: pointer;
-            z-index: 1000;
-            box-shadow: 0 0 30px rgba(255,255,255,0.7);
+            margin: 10px auto;
+            box-shadow: 0 0 20px rgba(255,255,255,0.7);
         }
         @keyframes rainbow {
             0% { background-position: 0% 50%; }
@@ -103,12 +99,10 @@
             transition: opacity 0.2s;
         }
         #boosterTimer {
-            position: fixed;
-            top: 10px;
-            left: 10px;
-            font-size: 18px;
+            font-size: 16px;
             color: #ff00ff;
             font-weight: bold;
+            margin: 5px;
             display: none;
         }
         
@@ -117,21 +111,22 @@
             display: flex;
             justify-content: center;
             gap: 50px;
-            margin: 20px auto;
+            margin: 10px auto;
             max-width: 800px;
+            align-items: center;
         }
         .controlBtn {
-            width: 80px;
-            height: 80px;
+            width: 70px;
+            height: 70px;
             border: none;
             border-radius: 50%;
-            font-size: 30px;
+            font-size: 25px;
             font-weight: bold;
             cursor: pointer;
             background: linear-gradient(45deg, #ff0000, #ff8000, #ffff00, #00ff00, #00ffff, #0000ff, #8000ff, #ff00ff);
             background-size: 400% 400%;
             animation: rainbow 3s ease infinite;
-            box-shadow: 0 0 20px rgba(255,255,255,0.5);
+            box-shadow: 0 0 15px rgba(255,255,255,0.5);
             color: white;
             text-shadow: 1px 1px 2px black;
         }
@@ -162,15 +157,14 @@
         <div id="player"></div>
     </div>
 
-    <button id="boosterBtn">Бустернуть? 🚀</button>
-    <div id="flashOverlay"></div>
-
-    <!-- КНОПКИ ДЛЯ ТЕЛЕФОНА -->
+    <!-- КНОПКИ ДЛЯ ТЕЛЕФОНА И БУСТЕР -->
     <div id="mobileControls">
         <button class="controlBtn" id="leftBtn">←</button>
+        <button id="boosterBtn">Бустернуть? 🚀</button>
         <button class="controlBtn" id="rightBtn">→</button>
     </div>
 
+    <div id="flashOverlay"></div>
     <div id="version">v1.0</div>
 
     <script>
@@ -188,6 +182,7 @@
         let balls = [];
         let isBoosting = false;
         let boosterTimeLeft = 0;
+        let boosterActivated = false;
         
         // Обновление позиции игрока
         function updatePlayerPosition() {
@@ -275,7 +270,7 @@
                     scoreDisplay.textContent = 'Очки: ' + score;
                     
                     // Проверка на активацию бустера
-                    if (score >= 1000 && !isBoosting && boosterTimeLeft === 0) {
+                    if (score >= 1000 && !boosterActivated) {
                         boosterBtn.style.display = 'block';
                     }
                 }
@@ -292,6 +287,8 @@
         boosterBtn.addEventListener('click', activateBooster);
         
         function activateBooster() {
+            boosterActivated = true;
+            
             // Вспышка
             flashOverlay.style.opacity = '0.8';
             setTimeout(() => {
