@@ -4,34 +4,30 @@
     <title>Ловец шаров</title>
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <style>
-        * {
+        body {
             margin: 0;
-            padding: 0;
-            box-sizing: border-box;
+            padding: 10px;
+            background: #0f0f23;
+            color: white;
+            text-align: center;
+            font-family: Arial;
+            touch-action: manipulation;
             -webkit-user-select: none;
             user-select: none;
             -webkit-touch-callout: none;
             -webkit-tap-highlight-color: transparent;
         }
-        body {
-            background: #0f0f23;
-            color: white;
-            text-align: center;
-            font-family: Arial;
-            padding: 10px;
-            touch-action: manipulation;
+        #gameContainer {
             position: relative;
-        }
-        #gameArea {
             width: 100%;
             max-width: 800px;
-            height: 400px;
-            margin: 10px auto;
+            height: 60vh;
+            margin: 0 auto;
             background: #1a1a2e;
             border: 3px solid #00ff88;
             border-radius: 15px;
-            position: relative;
             overflow: hidden;
+            touch-action: none;
         }
         #player {
             position: absolute;
@@ -40,8 +36,7 @@
             height: 20px;
             background: linear-gradient(90deg, #00ff88, #00ccff);
             border-radius: 10px;
-            left: 50%;
-            transform: translateX(-50%);
+            left: 350px;
         }
         .ball {
             position: absolute;
@@ -50,7 +45,6 @@
             background: radial-gradient(circle, #ff4444, #cc0000);
             border-radius: 50%;
             box-shadow: 0 0 10px red;
-            transition: all 0.3s ease;
         }
         .ball.boosting {
             background: radial-gradient(circle, #000, #fff, #000);
@@ -66,20 +60,26 @@
             margin: 10px;
             color: #00ff88;
         }
+        
+        /* БУСТЕР ПОВЕРХ ВСЕГО */
         #boosterBtn {
             display: none;
-            padding: 12px 20px;
-            font-size: 16px;
+            position: fixed;
+            top: 50%;
+            left: 50%;
+            transform: translate(-50%, -50%);
+            padding: 20px 40px;
+            font-size: 24px;
             font-weight: bold;
             background: linear-gradient(45deg, #ff0000, #ffff00, #00ff00, #00ffff, #0000ff, #ff00ff);
             background-size: 400% 400%;
             animation: rainbow 2s ease infinite;
             border: none;
-            border-radius: 20px;
+            border-radius: 30px;
             color: white;
             cursor: pointer;
-            margin: 10px auto;
-            box-shadow: 0 0 20px rgba(255,255,255,0.7);
+            z-index: 1000;
+            box-shadow: 0 0 40px rgba(255,255,255,0.8);
         }
         @keyframes rainbow {
             0% { background-position: 0% 50%; }
@@ -99,11 +99,14 @@
             transition: opacity 0.2s;
         }
         #boosterTimer {
-            font-size: 16px;
+            position: fixed;
+            top: 10px;
+            left: 10px;
+            font-size: 18px;
             color: #ff00ff;
             font-weight: bold;
-            margin: 5px;
             display: none;
+            z-index: 1001;
         }
         
         /* КНОПКИ ДЛЯ ТЕЛЕФОНА */
@@ -111,24 +114,27 @@
             display: flex;
             justify-content: center;
             gap: 50px;
-            margin: 10px auto;
+            margin: 20px auto;
             max-width: 800px;
-            align-items: center;
         }
         .controlBtn {
-            width: 70px;
-            height: 70px;
+            width: 80px;
+            height: 80px;
             border: none;
             border-radius: 50%;
-            font-size: 25px;
+            font-size: 30px;
             font-weight: bold;
             cursor: pointer;
             background: linear-gradient(45deg, #ff0000, #ff8000, #ffff00, #00ff00, #00ffff, #0000ff, #8000ff, #ff00ff);
             background-size: 400% 400%;
             animation: rainbow 3s ease infinite;
-            box-shadow: 0 0 15px rgba(255,255,255,0.5);
+            box-shadow: 0 0 20px rgba(255,255,255,0.5);
             color: white;
             text-shadow: 1px 1px 2px black;
+            -webkit-user-select: none;
+            user-select: none;
+            -webkit-touch-callout: none;
+            -webkit-tap-highlight-color: transparent;
         }
 
         /* ВЕРСИЯ */
@@ -153,22 +159,34 @@
     <div id="score">Очки: 0</div>
     <div id="boosterTimer"></div>
     
-    <div id="gameArea">
+    <div id="gameContainer">
         <div id="player"></div>
     </div>
 
-    <!-- КНОПКИ ДЛЯ ТЕЛЕФОНА И БУСТЕР -->
+    <button id="boosterBtn">БУСТЕРНУТЬ! 🚀</button>
+    <div id="flashOverlay"></div>
+
+    <!-- КНОПКИ ДЛЯ ТЕЛЕФОНА -->
     <div id="mobileControls">
         <button class="controlBtn" id="leftBtn">←</button>
-        <button id="boosterBtn">Бустернуть? 🚀</button>
         <button class="controlBtn" id="rightBtn">→</button>
     </div>
 
-    <div id="flashOverlay"></div>
     <div id="version">v1.0</div>
 
     <script>
-        const gameArea = document.getElementById('gameArea');
+        // БЛОКИРОВКА КОНТЕКСТНОГО МЕНЮ
+        document.addEventListener('contextmenu', function(e) {
+            e.preventDefault();
+            return false;
+        });
+        
+        document.addEventListener('selectstart', function(e) {
+            e.preventDefault();
+            return false;
+        });
+        
+        const gameContainer = document.getElementById('gameContainer');
         const player = document.getElementById('player');
         const scoreDisplay = document.getElementById('score');
         const boosterBtn = document.getElementById('boosterBtn');
@@ -177,47 +195,70 @@
         const leftBtn = document.getElementById('leftBtn');
         const rightBtn = document.getElementById('rightBtn');
         
-        let playerX = gameArea.offsetWidth / 2 - 50;
+        let playerX = 350;
         let score = 0;
         let balls = [];
         let isBoosting = false;
         let boosterTimeLeft = 0;
         let boosterActivated = false;
         
-        // Обновление позиции игрока
-        function updatePlayerPosition() {
-            player.style.left = playerX + 'px';
-        }
-        
-        // Управление
+        // Управление с клавиатуры
         document.addEventListener('keydown', (e) => {
-            if (e.key === 'ArrowLeft') playerX = Math.max(0, playerX - 20);
-            if (e.key === 'ArrowRight') playerX = Math.min(gameArea.offsetWidth - 100, playerX + 20);
+            if (e.key === 'ArrowLeft' && playerX > 0) {
+                playerX -= 20;
+            }
+            if (e.key === 'ArrowRight' && playerX < gameContainer.offsetWidth - 100) {
+                playerX += 20;
+            }
             updatePlayerPosition();
         });
         
-        leftBtn.addEventListener('touchstart', () => moveLeft());
-        rightBtn.addEventListener('touchstart', () => moveRight());
-        leftBtn.addEventListener('mousedown', () => moveLeft());
-        rightBtn.addEventListener('mousedown', () => moveRight());
+        // Управление с кнопок
+        leftBtn.addEventListener('touchstart', (e) => {
+            e.preventDefault();
+            moveLeft();
+        });
+        rightBtn.addEventListener('touchstart', (e) => {
+            e.preventDefault();
+            moveRight();
+        });
         
-        document.addEventListener('touchend', stopMove);
-        document.addEventListener('mouseup', stopMove);
+        leftBtn.addEventListener('mousedown', (e) => {
+            e.preventDefault();
+            moveLeft();
+        });
+        rightBtn.addEventListener('mousedown', (e) => {
+            e.preventDefault();
+            moveRight();
+        });
+        
+        document.addEventListener('touchend', (e) => {
+            e.preventDefault();
+            stopMove();
+        });
+        document.addEventListener('mouseup', (e) => {
+            e.preventDefault();
+            stopMove();
+        });
         
         let moveInterval;
         function moveLeft() {
             clearInterval(moveInterval);
             moveInterval = setInterval(() => {
-                playerX = Math.max(0, playerX - 5);
-                updatePlayerPosition();
+                if (playerX > 0) {
+                    playerX -= 5;
+                    updatePlayerPosition();
+                }
             }, 16);
         }
         
         function moveRight() {
             clearInterval(moveInterval);
             moveInterval = setInterval(() => {
-                playerX = Math.min(gameArea.offsetWidth - 100, playerX + 5);
-                updatePlayerPosition();
+                if (playerX < gameContainer.offsetWidth - 100) {
+                    playerX += 5;
+                    updatePlayerPosition();
+                }
             }, 16);
         }
         
@@ -225,14 +266,62 @@
             clearInterval(moveInterval);
         }
         
+        function updatePlayerPosition() {
+            player.style.left = playerX + 'px';
+        }
+        
+        // ПРОСТАЯ И НАДЁЖНАЯ ЛОГИКА СТОЛКНОВЕНИЙ
+        function checkCollision(ball, ballIndex) {
+            const playerRect = {
+                left: playerX,
+                right: playerX + 100,
+                top: gameContainer.offsetHeight - 30,
+                bottom: gameContainer.offsetHeight
+            };
+            
+            const ballRect = {
+                left: ball.x,
+                right: ball.x + 30,
+                top: ball.y,
+                bottom: ball.y + 30
+            };
+            
+            // Простая проверка пересечения
+            if (ballRect.bottom >= playerRect.top && 
+                ballRect.right >= playerRect.left && 
+                ballRect.left <= playerRect.right) {
+                
+                // Столкновение!
+                ball.element.remove();
+                balls.splice(ballIndex, 1);
+                score += 10;
+                scoreDisplay.textContent = 'Очки: ' + score;
+                
+                // Проверка на активацию бустера
+                if (score >= 1000 && !boosterActivated) {
+                    boosterBtn.style.display = 'block';
+                }
+                return true;
+            }
+            
+            // Шар упал ниже
+            if (ball.y > gameContainer.offsetHeight) {
+                ball.element.remove();
+                balls.splice(ballIndex, 1);
+                return true;
+            }
+            
+            return false;
+        }
+        
         // Создание шаров
         function createBall() {
             const ball = document.createElement('div');
             ball.className = 'ball';
-            const ballX = Math.random() * (gameArea.offsetWidth - 30);
+            const ballX = Math.random() * (gameContainer.offsetWidth - 30);
             ball.style.left = ballX + 'px';
             ball.style.top = '0px';
-            gameArea.appendChild(ball);
+            gameContainer.appendChild(ball);
             
             balls.push({
                 element: ball,
@@ -245,7 +334,9 @@
         
         // Движение шаров
         function moveBalls() {
-            balls.forEach((ball, index) => {
+            for (let i = balls.length - 1; i >= 0; i--) {
+                const ball = balls[i];
+                
                 if (isBoosting) {
                     // В режиме бустера шары летят к платформе
                     ball.targetX = playerX + 50;
@@ -260,27 +351,11 @@
                 ball.y += ball.speed;
                 ball.element.style.top = ball.y + 'px';
                 
-                // Проверка столкновения
-                if (ball.y > gameArea.offsetHeight - 30 && 
-                    ball.x + 15 > playerX && 
-                    ball.x + 15 < playerX + 100) {
-                    ball.element.remove();
-                    balls.splice(index, 1);
-                    score += 10;
-                    scoreDisplay.textContent = 'Очки: ' + score;
-                    
-                    // Проверка на активацию бустера
-                    if (score >= 1000 && !boosterActivated) {
-                        boosterBtn.style.display = 'block';
-                    }
+                // Проверяем столкновение
+                if (checkCollision(ball, i)) {
+                    continue; // Переходим к следующему шару
                 }
-                
-                // Шар упал
-                if (ball.y > gameArea.offsetHeight) {
-                    ball.element.remove();
-                    balls.splice(index, 1);
-                }
-            });
+            }
         }
         
         // Активация бустера
@@ -329,9 +404,6 @@
         setInterval(createBall, 1000);
         gameLoop();
         updatePlayerPosition();
-
-        // Блокировка контекстного меню
-        document.addEventListener('contextmenu', (e) => e.preventDefault());
     </script>
 </body>
 </html>
