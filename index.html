@@ -36,7 +36,8 @@
             height: 20px;
             background: linear-gradient(90deg, #00ff88, #00ccff);
             border-radius: 10px;
-            left: 350px;
+            left: 50%;
+            transform: translateX(-50%);
         }
         .ball {
             position: absolute;
@@ -124,7 +125,6 @@
             return false;
         });
         
-        // БЛОКИРОВКА ВЫДЕЛЕНИЯ ТЕКСТА
         document.addEventListener('selectstart', function(e) {
             e.preventDefault();
             return false;
@@ -139,14 +139,13 @@
         let playerX = 350;
         let score = 0;
         let balls = [];
-        let gameContainerWidth = gameContainer.offsetWidth;
         
         // Управление с клавиатуры
         document.addEventListener('keydown', (e) => {
             if (e.key === 'ArrowLeft' && playerX > 0) {
                 playerX -= 20;
             }
-            if (e.key === 'ArrowRight' && playerX < gameContainerWidth - 100) {
+            if (e.key === 'ArrowRight' && playerX < gameContainer.offsetWidth - 100) {
                 playerX += 20;
             }
             updatePlayerPosition();
@@ -171,7 +170,6 @@
             moveRight();
         });
         
-        // Отпускание кнопок
         document.addEventListener('touchend', (e) => {
             e.preventDefault();
             stopMove();
@@ -195,7 +193,7 @@
         function moveRight() {
             clearInterval(moveInterval);
             moveInterval = setInterval(() => {
-                if (playerX < gameContainerWidth - 100) {
+                if (playerX < gameContainer.offsetWidth - 100) {
                     playerX += 5;
                     updatePlayerPosition();
                 }
@@ -210,22 +208,59 @@
             player.style.left = playerX + 'px';
         }
         
+        // ПРОСТАЯ И НАДЁЖНАЯ ЛОГИКА СТОЛКНОВЕНИЙ
+        function checkCollision(ball, ballIndex) {
+            const playerRect = {
+                left: playerX,
+                right: playerX + 100,
+                top: gameContainer.offsetHeight - 30,
+                bottom: gameContainer.offsetHeight
+            };
+            
+            const ballRect = {
+                left: ball.x,
+                right: ball.x + 30,
+                top: ball.y,
+                bottom: ball.y + 30
+            };
+            
+            // Простая проверка пересечения
+            if (ballRect.bottom >= playerRect.top && 
+                ballRect.right >= playerRect.left && 
+                ballRect.left <= playerRect.right) {
+                
+                // Столкновение!
+                ball.element.remove();
+                balls.splice(ballIndex, 1);
+                score += 10;
+                scoreDisplay.textContent = 'Очки: ' + score;
+                return true;
+            }
+            
+            // Шар упал ниже
+            if (ball.y > gameContainer.offsetHeight) {
+                ball.element.remove();
+                balls.splice(ballIndex, 1);
+                return true;
+            }
+            
+            return false;
+        }
+        
         // Создание шаров
         function createBall() {
             const ball = document.createElement('div');
             ball.className = 'ball';
-            const ballX = Math.random() * (gameContainerWidth - 30);
+            const ballX = Math.random() * (gameContainer.offsetWidth - 30);
             ball.style.left = ballX + 'px';
             ball.style.top = '0px';
             gameContainer.appendChild(ball);
             
             balls.push({
                 element: ball,
-                x: parseInt(ball.style.left),
+                x: parseInt(ballX),
                 y: 0,
-                speed: 2 + Math.random() * 3,
-                width: 30,
-                height: 30
+                speed: 2 + Math.random() * 3
             });
         }
         
@@ -236,32 +271,9 @@
                 ball.y += ball.speed;
                 ball.element.style.top = ball.y + 'px';
                 
-                // ПРОВЕРКА СТОЛКНОВЕНИЯ - ИСПРАВЛЕННАЯ ЛОГИКА
-                const playerTop = gameContainer.offsetHeight - 30; // Высота контейнера минус высота платформы
-                const playerLeft = playerX;
-                const playerRight = playerX + 100;
-                const ballBottom = ball.y + 30;
-                const ballLeft = ball.x;
-                const ballRight = ball.x + 30;
-                
-                // Шар достиг низа и пересекается с платформой
-                if (ballBottom >= playerTop && 
-                    ballRight >= playerLeft && 
-                    ballLeft <= playerRight &&
-                    ball.y <= gameContainer.offsetHeight) {
-                    
-                    // Поймал шар!
-                    ball.element.remove();
-                    balls.splice(i, 1);
-                    score += 10;
-                    scoreDisplay.textContent = 'Очки: ' + score;
+                // Проверяем столкновение
+                if (checkCollision(ball, i)) {
                     continue; // Переходим к следующему шару
-                }
-                
-                // Шар упал ниже видимой области
-                if (ball.y > gameContainer.offsetHeight) {
-                    ball.element.remove();
-                    balls.splice(i, 1);
                 }
             }
         }
@@ -271,11 +283,6 @@
             moveBalls();
             requestAnimationFrame(gameLoop);
         }
-        
-        // Обновление размеров при изменении окна
-        window.addEventListener('resize', () => {
-            gameContainerWidth = gameContainer.offsetWidth;
-        });
         
         // Запуск игры
         setInterval(createBall, 1000);
