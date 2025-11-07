@@ -180,49 +180,75 @@
         let balls = [];
         let isBoosting = false;
         let boosterTimeLeft = 0;
+        let moveInterval;
         
-        // Управление
-        document.addEventListener('keydown', (e) => {
-            if (e.key === 'ArrowLeft' && playerX > 0) playerX -= 20;
-            if (e.key === 'ArrowRight' && playerX < 700) playerX += 20;
+        // Управление с ФИКСИРОВАННЫМИ ГРАНИЦАМИ
+        function updatePlayerPosition() {
+            // Правая граница: 800px - 100px = 700px
+            if (playerX < 0) playerX = 0;
+            if (playerX > 700) playerX = 700;
             player.style.left = playerX + 'px';
+        }
+        
+        document.addEventListener('keydown', (e) => {
+            if (e.key === 'ArrowLeft') playerX -= 20;
+            if (e.key === 'ArrowRight') playerX += 20;
+            updatePlayerPosition();
         });
         
-        leftBtn.addEventListener('touchstart', moveLeft);
-        rightBtn.addEventListener('touchstart', moveRight);
-        leftBtn.addEventListener('mousedown', moveLeft);
-        rightBtn.addEventListener('mousedown', moveRight);
-        document.addEventListener('touchend', stopMove);
-        document.addEventListener('mouseup', stopMove);
+        // Кнопки управления с ГРАНИЦАМИ
+        leftBtn.addEventListener('touchstart', (e) => {
+            e.preventDefault();
+            moveLeft();
+        });
+        rightBtn.addEventListener('touchstart', (e) => {
+            e.preventDefault();
+            moveRight();
+        });
         
-        let moveInterval;
+        leftBtn.addEventListener('mousedown', (e) => {
+            e.preventDefault();
+            moveLeft();
+        });
+        rightBtn.addEventListener('mousedown', (e) => {
+            e.preventDefault();
+            moveRight();
+        });
+        
+        document.addEventListener('touchend', (e) => {
+            e.preventDefault();
+            stopMove();
+        });
+        document.addEventListener('mouseup', (e) => {
+            e.preventDefault();
+            stopMove();
+        });
+        
         function moveLeft() {
             clearInterval(moveInterval);
             moveInterval = setInterval(() => {
-                if (playerX > 0) {
-                    playerX -= 8;
-                    player.style.left = playerX + 'px';
-                }
+                playerX -= 5;
+                updatePlayerPosition();
             }, 16);
         }
+        
         function moveRight() {
             clearInterval(moveInterval);
             moveInterval = setInterval(() => {
-                if (playerX < 700) {
-                    playerX += 8;
-                    player.style.left = playerX + 'px';
-                }
+                playerX += 5;
+                updatePlayerPosition();
             }, 16);
         }
+        
         function stopMove() {
             clearInterval(moveInterval);
         }
         
-        // Создание шаров
+        // Шары КАЖДЫЕ 0.5 СЕКУНДЫ
         function createBall() {
             const ball = document.createElement('div');
             ball.className = 'ball';
-            const ballX = Math.random() * 770;
+            const ballX = Math.random() * 770; // 800 - 30 = 770
             ball.style.left = ballX + 'px';
             ball.style.top = '0px';
             gameContainer.appendChild(ball);
@@ -235,16 +261,19 @@
             });
         }
         
-        // Движение и столкновения
+        // Движение и ПРАВИЛЬНЫЕ СТОЛКНОВЕНИЯ
         function moveBalls() {
             for (let i = balls.length - 1; i >= 0; i--) {
                 const ball = balls[i];
                 
-                // БУСТЕР: шары летят к платформе
+                // БУСТЕР
                 if (isBoosting) {
                     const targetX = playerX + 35;
                     const dx = targetX - ball.x;
-                    ball.x += dx * 0.05; // Движение к платформе
+                    ball.x += dx * 0.05;
+                    // Ограничиваем шары в пределах экрана
+                    if (ball.x < 0) ball.x = 0;
+                    if (ball.x > 770) ball.x = 770;
                     ball.element.style.left = ball.x + 'px';
                     ball.element.classList.add('boosting');
                 }
@@ -252,15 +281,19 @@
                 ball.y += ball.speed;
                 ball.element.style.top = ball.y + 'px';
                 
-                // Проверка столкновения
-                if (ball.y >= 450 && ball.y <= 470 && 
-                    ball.x + 30 >= playerX && ball.x <= playerX + 100) {
+                // ПРАВИЛЬНОЕ СТОЛКНОВЕНИЕ - шар должен КАСАТЬСЯ платформы
+                const ballBottom = ball.y + 30;
+                const playerTop = 480; // 500 - 20
+                
+                if (ballBottom >= playerTop && 
+                    ball.x + 30 >= playerX && 
+                    ball.x <= playerX + 100) {
+                    
                     ball.element.remove();
                     balls.splice(i, 1);
                     score += 10;
                     scoreDisplay.textContent = 'Очки: ' + score;
                     
-                    // Показ кнопки бустера при 1000 очков
                     if (score >= 1000 && boosterTimeLeft === 0) {
                         boosterBtn.style.display = 'block';
                     }
@@ -275,26 +308,19 @@
             }
         }
         
-        // БУСТЕР - ПРОСТАЯ И РАБОЧАЯ ВЕРСИЯ
+        // БУСТЕР (оставляю как есть)
         boosterBtn.addEventListener('click', function() {
-            // 1. Вспышка
             flashOverlay.style.opacity = '0.8';
             setTimeout(() => {
                 flashOverlay.style.opacity = '0';
             }, 200);
             
-            // 2. Скрываем кнопку
             boosterBtn.style.display = 'none';
-            
-            // 3. Включаем бустер
             isBoosting = true;
-            boosterTimeLeft = 10; // 10 секунд для теста
-            
-            // 4. Показываем таймер
+            boosterTimeLeft = 10;
             boosterTimer.style.display = 'block';
             updateBoosterTimer();
             
-            // 5. Таймер обратного отсчёта
             const timer = setInterval(() => {
                 boosterTimeLeft--;
                 updateBoosterTimer();
@@ -303,8 +329,6 @@
                     isBoosting = false;
                     boosterTimer.style.display = 'none';
                     clearInterval(timer);
-                    
-                    // Убираем эффект бустера у всех шаров
                     balls.forEach(ball => {
                         ball.element.classList.remove('boosting');
                     });
@@ -316,15 +340,15 @@
             boosterTimer.textContent = `Бустер: ${boosterTimeLeft}с`;
         }
         
-        // Запуск игры
-        setInterval(createBall, 1000);
+        // Запуск игры - ШАРЫ КАЖДЫЕ 0.5 СЕКУНДЫ
+        setInterval(createBall, 500);
         function gameLoop() {
             moveBalls();
             requestAnimationFrame(gameLoop);
         }
         gameLoop();
+        updatePlayerPosition();
         
-        // Защита от контекстного меню
         document.addEventListener('contextmenu', (e) => e.preventDefault());
     </script>
 </body>
