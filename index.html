@@ -185,20 +185,14 @@
         let boosterTimeLeft = 0;
         let moveInterval;
         
-        // Управление с ПРАВИЛЬНЫМИ ГРАНИЦАМИ
-        function updatePlayerPosition() {
-            if (playerX < 0) playerX = 0;
-            if (playerX > 700) playerX = 700; // Фиксированная правая граница
-            player.style.left = playerX + 'px';
-        }
-        
+        // Управление (старое, с багами)
         document.addEventListener('keydown', (e) => {
-            if (e.key === 'ArrowLeft') playerX -= 20;
-            if (e.key === 'ArrowRight') playerX += 20;
-            updatePlayerPosition();
+            if (e.key === 'ArrowLeft' && playerX > 0) playerX -= 20;
+            if (e.key === 'ArrowRight' && playerX < 700) playerX += 20;
+            player.style.left = playerX + 'px';
         });
         
-        // Кнопки управления - КАК БЫЛО
+        // Старое управление кнопками
         leftBtn.addEventListener('touchstart', (e) => {
             e.preventDefault();
             moveLeft();
@@ -229,16 +223,20 @@
         function moveLeft() {
             clearInterval(moveInterval);
             moveInterval = setInterval(() => {
-                playerX -= 5;
-                updatePlayerPosition();
+                if (playerX > 0) {
+                    playerX -= 5;
+                    player.style.left = playerX + 'px';
+                }
             }, 16);
         }
         
         function moveRight() {
             clearInterval(moveInterval);
             moveInterval = setInterval(() => {
-                playerX += 5;
-                updatePlayerPosition();
+                if (playerX < 700) {
+                    playerX += 5;
+                    player.style.left = playerX + 'px';
+                }
             }, 16);
         }
         
@@ -246,11 +244,11 @@
             clearInterval(moveInterval);
         }
         
-        // Создание шаров КАЖДЫЕ 0.5 СЕКУНДЫ
+        // Создание шаров (старое, редко)
         function createBall() {
             const ball = document.createElement('div');
             ball.className = 'ball';
-            const ballX = Math.random() * 770; // В пределах контейнера
+            const ballX = Math.random() * 770;
             ball.style.left = ballX + 'px';
             ball.style.top = '0px';
             gameContainer.appendChild(ball);
@@ -263,7 +261,7 @@
             });
         }
         
-        // Движение шаров
+        // Движение шаров (старое, с багами)
         function moveBalls() {
             for (let i = balls.length - 1; i >= 0; i--) {
                 const ball = balls[i];
@@ -272,8 +270,6 @@
                     const targetX = playerX + 35;
                     const dx = targetX - ball.x;
                     ball.x += dx * 0.05;
-                    if (ball.x < 0) ball.x = 0;
-                    if (ball.x > 770) ball.x = 770;
                     ball.element.style.left = ball.x + 'px';
                     ball.element.classList.add('boosting');
                 }
@@ -281,8 +277,8 @@
                 ball.y += ball.speed;
                 ball.element.style.top = ball.y + 'px';
                 
-                // Столкновение
-                if (ball.y >= 480 && ball.y <= 500 && 
+                // Старая логика столкновений
+                if (ball.y >= 450 && ball.y <= 470 && 
                     ball.x + 30 >= playerX && ball.x <= playerX + 100) {
                     ball.element.remove();
                     balls.splice(i, 1);
@@ -302,7 +298,7 @@
             }
         }
         
-        // Бустер
+        // Бустер (старый, рабочий)
         boosterBtn.addEventListener('click', function() {
             flashOverlay.style.opacity = '0.8';
             setTimeout(() => {
@@ -334,14 +330,13 @@
             boosterTimer.textContent = `Бустер: ${boosterTimeLeft}с`;
         }
         
-        // Запуск игры
-        setInterval(createBall, 500); // Шары каждые 0.5 секунды!
+        // Запуск игры (старый)
+        setInterval(createBall, 1000); // Старые 1 секунда
         function gameLoop() {
             moveBalls();
             requestAnimationFrame(gameLoop);
         }
         gameLoop();
-        updatePlayerPosition();
         
         document.addEventListener('contextmenu', (e) => e.preventDefault());
     </script>
