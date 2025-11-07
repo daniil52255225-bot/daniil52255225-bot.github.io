@@ -49,68 +49,19 @@
             border-radius: 50%;
             box-shadow: 0 0 10px red;
         }
-        .ball.boosting {
-            background: radial-gradient(circle, #000, #fff, #000);
-            animation: blackWhite 0.3s infinite;
-            box-shadow: 0 0 15px white;
+        .ball.gold {
+            background: radial-gradient(circle, #ffd700, #ff9900, #ff6b00);
+            box-shadow: 0 0 20px gold;
+            animation: glow 1s ease-in-out infinite alternate;
         }
-        @keyframes blackWhite {
-            0%, 100% { filter: invert(0); transform: scale(1.1); }
-            50% { filter: invert(1); transform: scale(0.9); }
+        @keyframes glow {
+            from { box-shadow: 0 0 10px gold; }
+            to { box-shadow: 0 0 30px yellow, 0 0 40px orange; }
         }
         #score {
             font-size: 24px;
             margin: 10px;
             color: #00ff88;
-        }
-        #boosterBtn {
-            display: none;
-            position: fixed;
-            top: 50%;
-            left: 50%;
-            transform: translate(-50%, -50%);
-            padding: 20px 40px;
-            font-size: 24px;
-            font-weight: bold;
-            background: linear-gradient(45deg, #ff0000, #ffff00, #00ff00, #00ffff, #0000ff, #ff00ff);
-            background-size: 400% 400%;
-            animation: rainbow 2s ease infinite;
-            border: none;
-            border-radius: 30px;
-            color: white;
-            cursor: pointer;
-            z-index: 1000;
-            box-shadow: 0 0 40px rgba(255,255,255,0.8);
-        }
-        @keyframes rainbow {
-            0% { background-position: 0% 50%; }
-            50% { background-position: 100% 50%; }
-            100% { background-position: 0% 50%; }
-        }
-        #flashOverlay {
-            position: fixed;
-            top: 0;
-            left: 0;
-            width: 100%;
-            height: 100%;
-            background: white;
-            opacity: 0;
-            pointer-events: none;
-            z-index: 999;
-            transition: opacity 0.3s;
-        }
-        #boosterTimer {
-            position: fixed;
-            top: 10px;
-            left: 10px;
-            font-size: 18px;
-            color: #ff00ff;
-            font-weight: bold;
-            display: none;
-            z-index: 1001;
-            background: rgba(0,0,0,0.7);
-            padding: 8px 15px;
-            border-radius: 10px;
         }
         #mobileControls {
             display: flex;
@@ -134,6 +85,11 @@
             color: white;
             text-shadow: 1px 1px 2px black;
         }
+        @keyframes rainbow {
+            0% { background-position: 0% 50%; }
+            50% { background-position: 100% 50%; }
+            100% { background-position: 0% 50%; }
+        }
         #version {
             position: fixed;
             bottom: 10px;
@@ -151,46 +107,37 @@
     </style>
 </head>
 <body>
-    <h1>🎮 ЛОВЕЦ ШАРОВ v1.1 🎮</h1>
+    <h1>🎮 ЛОВЕЦ ШАРОВ v1.2 🎮</h1>
     <div id="score">Очки: 0</div>
-    <div id="boosterTimer"></div>
     
     <div id="gameContainer">
         <div id="player"></div>
     </div>
-
-    <button id="boosterBtn">БУСТЕРНУТЬ! ⚡</button>
-    <div id="flashOverlay"></div>
 
     <div id="mobileControls">
         <button class="controlBtn" id="leftBtn">←</button>
         <button class="controlBtn" id="rightBtn">→</button>
     </div>
 
-    <div id="version">v1.1</div>
+    <div id="version">v1.2</div>
 
     <script>
         const gameContainer = document.getElementById('gameContainer');
         const player = document.getElementById('player');
         const scoreDisplay = document.getElementById('score');
-        const boosterBtn = document.getElementById('boosterBtn');
-        const flashOverlay = document.getElementById('flashOverlay');
-        const boosterTimer = document.getElementById('boosterTimer');
         const leftBtn = document.getElementById('leftBtn');
         const rightBtn = document.getElementById('rightBtn');
         
         let playerX = 350;
         let score = 0;
         let balls = [];
-        let isBoosting = false;
-        let boosterTimeLeft = 0;
-        let boosterAvailable = false;
         let moveInterval;
+        let ballCounter = 0; // Счётчик шаров для золотого шара
         
-        // Управление с ПРАВИЛЬНОЙ ПРАВОЙ ГРАНИЦЕЙ
+        // Управление с ПРАВОЙ ГРАНИЦЕЙ 500px
         function updatePlayerPosition() {
             if (playerX < 0) playerX = 0;
-            if (playerX > 650) playerX = 650; // Уменьшил правую границу!
+            if (playerX > 500) playerX = 500; // Правая граница 500px!
             player.style.left = playerX + 'px';
         }
         
@@ -248,7 +195,7 @@
             clearInterval(moveInterval);
         }
         
-        // Шары КАЖДЫЕ 0.5 СЕКУНДЫ
+        // Создание шаров с ЗОЛОТЫМИ ШАРАМИ
         function createBall() {
             const ball = document.createElement('div');
             ball.className = 'ball';
@@ -257,11 +204,21 @@
             ball.style.top = '0px';
             gameContainer.appendChild(ball);
             
+            ballCounter++;
+            
+            // Каждый 20-й шар - золотой!
+            let isGold = false;
+            if (ballCounter % 20 === 0) {
+                ball.classList.add('gold');
+                isGold = true;
+            }
+            
             balls.push({
                 element: ball,
                 x: parseInt(ballX),
                 y: 0,
-                speed: 2 + Math.random() * 3
+                speed: 2 + Math.random() * 3,
+                isGold: isGold
             });
         }
         
@@ -269,16 +226,6 @@
         function moveBalls() {
             for (let i = balls.length - 1; i >= 0; i--) {
                 const ball = balls[i];
-                
-                // ПРОСТОЙ И РАБОЧИЙ БУСТЕР
-                if (isBoosting) {
-                    // Шары летят к центру платформы
-                    const targetX = playerX + 50;
-                    const dx = targetX - (ball.x + 15);
-                    ball.x += dx * 0.1; // Сильное притяжение
-                    ball.element.style.left = ball.x + 'px';
-                    ball.element.classList.add('boosting');
-                }
                 
                 ball.y += ball.speed;
                 ball.element.style.top = ball.y + 'px';
@@ -291,16 +238,16 @@
                     ball.x + 30 >= playerX && 
                     ball.x <= playerX + 100) {
                     
+                    // Золотой шар = +50 очков, обычный = +10
+                    if (ball.isGold) {
+                        score += 50;
+                    } else {
+                        score += 10;
+                    }
+                    
+                    scoreDisplay.textContent = 'Очки: ' + score;
                     ball.element.remove();
                     balls.splice(i, 1);
-                    score += 10;
-                    scoreDisplay.textContent = 'Очки: ' + score;
-                    
-                    // Активация кнопки бустера
-                    if (score >= 1000 && !boosterAvailable && !isBoosting) {
-                        boosterAvailable = true;
-                        boosterBtn.style.display = 'block';
-                    }
                     continue;
                 }
                 
@@ -310,51 +257,6 @@
                     balls.splice(i, 1);
                 }
             }
-        }
-        
-        // ПРОСТАЯ И РАБОЧАЯ АКТИВАЦИЯ БУСТЕРА
-        boosterBtn.addEventListener('click', function() {
-            console.log("Бустер активирован!");
-            
-            // 1. Вспышка
-            flashOverlay.style.opacity = '1';
-            setTimeout(() => {
-                flashOverlay.style.opacity = '0';
-            }, 300);
-            
-            // 2. Скрываем кнопку
-            boosterBtn.style.display = 'none';
-            boosterAvailable = false;
-            
-            // 3. ВКЛЮЧАЕМ бустер
-            isBoosting = true;
-            boosterTimeLeft = 60;
-            boosterTimer.style.display = 'block';
-            updateBoosterTimer();
-            
-            // 4. Запускаем таймер
-            const boosterInterval = setInterval(() => {
-                boosterTimeLeft--;
-                updateBoosterTimer();
-                
-                if (boosterTimeLeft <= 0) {
-                    // ВЫКЛЮЧАЕМ бустер
-                    isBoosting = false;
-                    boosterTimer.style.display = 'none';
-                    clearInterval(boosterInterval);
-                    
-                    // Убираем эффект у шаров
-                    balls.forEach(ball => {
-                        ball.element.classList.remove('boosting');
-                    });
-                    
-                    console.log("Бустер закончился!");
-                }
-            }, 1000);
-        });
-        
-        function updateBoosterTimer() {
-            boosterTimer.textContent = `⚡ БУСТЕР: ${boosterTimeLeft}с`;
         }
         
         // Запуск игры
