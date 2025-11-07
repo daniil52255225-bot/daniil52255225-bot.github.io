@@ -40,7 +40,6 @@
             background: linear-gradient(90deg, #00ff88, #00ccff);
             border-radius: 10px;
             left: 350px;
-            transition: left 0.1s;
         }
         .ball {
             position: absolute;
@@ -49,22 +48,15 @@
             background: radial-gradient(circle, #ff4444, #cc0000);
             border-radius: 50%;
             box-shadow: 0 0 10px red;
-            transition: all 0.3s;
         }
         .ball.boosting {
             background: radial-gradient(circle, #000, #fff, #000);
             animation: blackWhite 0.3s infinite;
-            box-shadow: 0 0 20px white;
+            box-shadow: 0 0 15px white;
         }
         @keyframes blackWhite {
-            0%, 100% { 
-                filter: invert(0) brightness(2); 
-                transform: scale(1.1);
-            }
-            50% { 
-                filter: invert(1) brightness(2);
-                transform: scale(0.9);
-            }
+            0%, 100% { filter: invert(0); transform: scale(1.1); }
+            50% { filter: invert(1); transform: scale(0.9); }
         }
         #score {
             font-size: 24px;
@@ -77,22 +69,18 @@
             top: 50%;
             left: 50%;
             transform: translate(-50%, -50%);
-            padding: 25px 50px;
-            font-size: 28px;
+            padding: 20px 40px;
+            font-size: 24px;
             font-weight: bold;
             background: linear-gradient(45deg, #ff0000, #ffff00, #00ff00, #00ffff, #0000ff, #ff00ff);
             background-size: 400% 400%;
-            animation: rainbow 1.5s ease infinite;
+            animation: rainbow 2s ease infinite;
             border: none;
-            border-radius: 35px;
+            border-radius: 30px;
             color: white;
             cursor: pointer;
             z-index: 1000;
-            box-shadow: 0 0 50px rgba(255,255,255,0.9);
-            text-shadow: 2px 2px 4px rgba(0,0,0,0.5);
-        }
-        #boosterBtn:active {
-            transform: translate(-50%, -50%) scale(0.95);
+            box-shadow: 0 0 40px rgba(255,255,255,0.8);
         }
         @keyframes rainbow {
             0% { background-position: 0% 50%; }
@@ -109,21 +97,16 @@
             opacity: 0;
             pointer-events: none;
             z-index: 999;
-            transition: opacity 0.3s;
         }
         #boosterTimer {
             position: fixed;
-            top: 15px;
-            left: 15px;
-            font-size: 20px;
+            top: 10px;
+            left: 10px;
+            font-size: 18px;
             color: #ff00ff;
             font-weight: bold;
             display: none;
             z-index: 1001;
-            text-shadow: 0 0 10px #ff00ff;
-            background: rgba(0,0,0,0.7);
-            padding: 8px 15px;
-            border-radius: 10px;
         }
         #mobileControls {
             display: flex;
@@ -147,23 +130,19 @@
             color: white;
             text-shadow: 1px 1px 2px black;
         }
-        .controlBtn:active {
-            transform: scale(0.9);
-        }
         #version {
             position: fixed;
             bottom: 10px;
             right: 10px;
-            font-size: 14px;
+            font-size: 12px;
             background: linear-gradient(45deg, #ff0000, #ff8000, #ffff00, #00ff00, #00ffff, #0000ff, #8000ff, #ff00ff);
             background-size: 400% 400%;
             animation: rainbow 3s ease infinite;
             -webkit-background-clip: text;
             -webkit-text-fill-color: transparent;
-            padding: 6px 12px;
+            padding: 5px;
             border-radius: 10px;
             font-weight: bold;
-            border: 1px solid rgba(255,255,255,0.3);
         }
     </style>
 </head>
@@ -201,7 +180,6 @@
         let balls = [];
         let isBoosting = false;
         let boosterTimeLeft = 0;
-        let boosterActivated = false;
         
         // Управление
         document.addEventListener('keydown', (e) => {
@@ -265,12 +243,10 @@
                 // БУСТЕР: шары летят к платформе
                 if (isBoosting) {
                     const targetX = playerX + 35;
-                    const dx = targetX - (ball.x + 15);
-                    ball.x += dx * 0.08; // Плавное движение к платформе
+                    const dx = targetX - ball.x;
+                    ball.x += dx * 0.05; // Движение к платформе
                     ball.element.style.left = ball.x + 'px';
                     ball.element.classList.add('boosting');
-                } else {
-                    ball.element.classList.remove('boosting');
                 }
                 
                 ball.y += ball.speed;
@@ -285,7 +261,7 @@
                     scoreDisplay.textContent = 'Очки: ' + score;
                     
                     // Показ кнопки бустера при 1000 очков
-                    if (score >= 1000 && !boosterActivated) {
+                    if (score >= 1000 && boosterTimeLeft === 0) {
                         boosterBtn.style.display = 'block';
                     }
                     continue;
@@ -299,42 +275,45 @@
             }
         }
         
-        // АКТИВАЦИЯ БУСТЕРА
-        boosterBtn.addEventListener('click', activateBooster);
-        
-        function activateBooster() {
-            boosterActivated = true;
-            
-            // 1. ВСПЫШКА
-            flashOverlay.style.opacity = '0.9';
+        // БУСТЕР - ПРОСТАЯ И РАБОЧАЯ ВЕРСИЯ
+        boosterBtn.addEventListener('click', function() {
+            // 1. Вспышка
+            flashOverlay.style.opacity = '0.8';
             setTimeout(() => {
                 flashOverlay.style.opacity = '0';
-            }, 300);
+            }, 200);
             
             // 2. Скрываем кнопку
             boosterBtn.style.display = 'none';
             
-            // 3. Активируем бустер
+            // 3. Включаем бустер
             isBoosting = true;
-            boosterTimeLeft = 60;
+            boosterTimeLeft = 10; // 10 секунд для теста
+            
+            // 4. Показываем таймер
             boosterTimer.style.display = 'block';
             updateBoosterTimer();
             
-            // 4. Таймер бустера
-            const boosterInterval = setInterval(() => {
+            // 5. Таймер обратного отсчёта
+            const timer = setInterval(() => {
                 boosterTimeLeft--;
                 updateBoosterTimer();
                 
                 if (boosterTimeLeft <= 0) {
                     isBoosting = false;
                     boosterTimer.style.display = 'none';
-                    clearInterval(boosterInterval);
+                    clearInterval(timer);
+                    
+                    // Убираем эффект бустера у всех шаров
+                    balls.forEach(ball => {
+                        ball.element.classList.remove('boosting');
+                    });
                 }
             }, 1000);
-        }
+        });
         
         function updateBoosterTimer() {
-            boosterTimer.textContent = `⚡ БУСТЕР: ${boosterTimeLeft}с`;
+            boosterTimer.textContent = `Бустер: ${boosterTimeLeft}с`;
         }
         
         // Запуск игры
