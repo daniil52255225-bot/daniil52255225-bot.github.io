@@ -36,8 +36,7 @@
             height: 20px;
             background: linear-gradient(90deg, #00ff88, #00ccff);
             border-radius: 10px;
-            left: 50%;
-            transform: translateX(-50%);
+            left: 350px;
         }
         .ball {
             position: absolute;
@@ -140,17 +139,14 @@
         let playerX = 350;
         let score = 0;
         let balls = [];
-        
-        // Размеры для мобильных
-        const containerWidth = gameContainer.offsetWidth;
-        const playerWidth = 100;
+        let gameContainerWidth = gameContainer.offsetWidth;
         
         // Управление с клавиатуры
         document.addEventListener('keydown', (e) => {
             if (e.key === 'ArrowLeft' && playerX > 0) {
                 playerX -= 20;
             }
-            if (e.key === 'ArrowRight' && playerX < containerWidth - playerWidth) {
+            if (e.key === 'ArrowRight' && playerX < gameContainerWidth - 100) {
                 playerX += 20;
             }
             updatePlayerPosition();
@@ -199,7 +195,7 @@
         function moveRight() {
             clearInterval(moveInterval);
             moveInterval = setInterval(() => {
-                if (playerX < containerWidth - playerWidth) {
+                if (playerX < gameContainerWidth - 100) {
                     playerX += 5;
                     updatePlayerPosition();
                 }
@@ -218,16 +214,18 @@
         function createBall() {
             const ball = document.createElement('div');
             ball.className = 'ball';
-            const ballX = Math.random() * (containerWidth - 30);
+            const ballX = Math.random() * (gameContainerWidth - 30);
             ball.style.left = ballX + 'px';
             ball.style.top = '0px';
             gameContainer.appendChild(ball);
             
             balls.push({
                 element: ball,
-                x: parseInt(ballX),
+                x: parseInt(ball.style.left),
                 y: 0,
-                speed: 2 + Math.random() * 3
+                speed: 2 + Math.random() * 3,
+                width: 30,
+                height: 30
             });
         }
         
@@ -238,18 +236,29 @@
                 ball.y += ball.speed;
                 ball.element.style.top = ball.y + 'px';
                 
-                // Проверка столкновения с игроком
-                if (ball.y > gameContainer.offsetHeight - 40 && 
-                    ball.x > playerX - 15 && 
-                    ball.x < playerX + playerWidth - 15) {
+                // ПРОВЕРКА СТОЛКНОВЕНИЯ - ИСПРАВЛЕННАЯ ЛОГИКА
+                const playerTop = gameContainer.offsetHeight - 30; // Высота контейнера минус высота платформы
+                const playerLeft = playerX;
+                const playerRight = playerX + 100;
+                const ballBottom = ball.y + 30;
+                const ballLeft = ball.x;
+                const ballRight = ball.x + 30;
+                
+                // Шар достиг низа и пересекается с платформой
+                if (ballBottom >= playerTop && 
+                    ballRight >= playerLeft && 
+                    ballLeft <= playerRight &&
+                    ball.y <= gameContainer.offsetHeight) {
+                    
                     // Поймал шар!
                     ball.element.remove();
                     balls.splice(i, 1);
                     score += 10;
                     scoreDisplay.textContent = 'Очки: ' + score;
+                    continue; // Переходим к следующему шару
                 }
                 
-                // Шар упал
+                // Шар упал ниже видимой области
                 if (ball.y > gameContainer.offsetHeight) {
                     ball.element.remove();
                     balls.splice(i, 1);
@@ -262,6 +271,11 @@
             moveBalls();
             requestAnimationFrame(gameLoop);
         }
+        
+        // Обновление размеров при изменении окна
+        window.addEventListener('resize', () => {
+            gameContainerWidth = gameContainer.offsetWidth;
+        });
         
         // Запуск игры
         setInterval(createBall, 1000);
