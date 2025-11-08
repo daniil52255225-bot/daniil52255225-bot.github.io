@@ -279,9 +279,10 @@
         }
         
         function setupGame() {
-            // Автоматически определяем правую границу
+            // Автоматически определяем границы
             const gameWidth = gameContainer.offsetWidth;
-            const maxPlayerX = gameWidth - 150; // Отступ 150px
+            const maxPlayerX = gameWidth - 100; // Ширина игрока 100px
+            const maxBallX = gameWidth - 30; // Ширина шара 30px
             
             function updatePlayerPosition() {
                 if (playerX < 0) playerX = 0;
@@ -347,7 +348,12 @@
             function createBall() {
                 const ball = document.createElement('div');
                 ball.className = 'ball';
-                const ballX = Math.random() * 770;
+                
+                // Исправление бага: шары не выходят за пределы экрана
+                const gameWidth = gameContainer.offsetWidth;
+                const maxBallX = gameWidth - 30; // 30px - ширина шара
+                const ballX = Math.random() * maxBallX;
+                
                 ball.style.left = ballX + 'px';
                 ball.style.top = '0px';
                 gameContainer.appendChild(ball);
