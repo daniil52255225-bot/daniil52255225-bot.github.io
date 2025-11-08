@@ -88,6 +88,11 @@
             color: #00ccff;
             margin: 10px;
         }
+        #mode {
+            font-size: 20px;
+            color: #ffd700;
+            margin: 10px;
+        }
         
         /* МЕНЮ */
         #mainMenu {
@@ -115,8 +120,8 @@
             width: 200px;
             box-shadow: 0 0 20px rgba(0, 255, 136, 0.5);
         }
-        .levelBtn {
-            padding: 12px 25px;
+        .modeBtn {
+            padding: 15px 30px;
             font-size: 18px;
             background: linear-gradient(45deg, #ff6b6b, #ffd93d);
             border: none;
@@ -124,7 +129,23 @@
             color: white;
             cursor: pointer;
             margin: 8px;
+            width: 220px;
+        }
+        .levelBtn {
+            padding: 12px 25px;
+            font-size: 18px;
+            background: linear-gradient(45deg, #4ECDC4, #556270);
+            border: none;
+            border-radius: 20px;
+            color: white;
+            cursor: pointer;
+            margin: 8px;
             width: 180px;
+        }
+        #modeSelection {
+            display: none;
+            flex-direction: column;
+            align-items: center;
         }
         #levelSelection {
             display: none;
@@ -180,10 +201,11 @@
     </style>
 </head>
 <body>
-    <h1>🎮 ЛОВЕЦ ШАРОВ v2.0 🎮</h1>
+    <h1>🎮 ЛОВЕЦ ШАРОВ v3.0 🎮</h1>
     <div id="score">Очки: 0</div>
     <div id="lives">Жизни: 3</div>
     <div id="level">Уровень: 1</div>
+    <div id="mode">Режим: Свободная игра</div>
     
     <div id="gameContainer">
         <div id="player"></div>
@@ -193,8 +215,14 @@
     <div id="mainMenu">
         <h1 style="font-size: 48px; color: #00ff88; margin-bottom: 30px;">🎯 ЛОВЕЦ ШАРОВ</h1>
         <button class="menuBtn" id="playBtn">ИГРАТЬ</button>
+        <div id="modeSelection">
+            <h2 style="color: #ffd700; margin-bottom: 20px;">ВЫБЕРИ РЕЖИМ</h2>
+            <button class="modeBtn" data-mode="free">🎮 Свободная игра</button>
+            <button class="modeBtn" data-mode="survival">⚡ Выживание (скоро!)</button>
+            <button class="modeBtn" data-mode="accuracy">🎯 Точность (скоро!)</button>
+        </div>
         <div id="levelSelection">
-            <h2 style="color: #00ccff; margin-bottom: 20px;">ВЫБЕРИ УРОВЕНЬ</h2>
+            <h2 style="color: #00ccff; margin-bottom: 20px;">ВЫБЕРИ УРОВЕНЬ СЛОЖНОСТИ</h2>
             <button class="levelBtn" data-level="1">🎮 Уровень 1 (Лёгкий)</button>
             <button class="levelBtn" data-level="2">⚡ Уровень 2 (Средний)</button>
             <button class="levelBtn" data-level="3">🔥 Уровень 3 (Сложный)</button>
@@ -206,7 +234,7 @@
         <button class="controlBtn" id="rightBtn">→</button>
     </div>
 
-    <div id="version">v2.0</div>
+    <div id="version">v3.0</div>
 
     <script>
         const gameContainer = document.getElementById('gameContainer');
@@ -214,11 +242,14 @@
         const scoreDisplay = document.getElementById('score');
         const livesDisplay = document.getElementById('lives');
         const levelDisplay = document.getElementById('level');
+        const modeDisplay = document.getElementById('mode');
         const leftBtn = document.getElementById('leftBtn');
         const rightBtn = document.getElementById('rightBtn');
         const mainMenu = document.getElementById('mainMenu');
         const playBtn = document.getElementById('playBtn');
+        const modeSelection = document.getElementById('modeSelection');
         const levelSelection = document.getElementById('levelSelection');
+        const modeBtns = document.querySelectorAll('.modeBtn');
         const levelBtns = document.querySelectorAll('.levelBtn');
         
         let playerX = 350;
@@ -228,6 +259,7 @@
         let ballCounter = 0;
         let lives = 3;
         let currentLevel = 1;
+        let currentMode = 'free';
         let missedBalls = 0;
         let gameActive = false;
         
@@ -237,11 +269,32 @@
             2: { speed: 3, interval: 600, name: "Средний" },
             3: { speed: 4, interval: 400, name: "Сложный" }
         };
+
+        // НАСТРОЙКИ РЕЖИМОВ
+        const modeSettings = {
+            free: { name: "Свободная игра", description: "Классический режим" },
+            survival: { name: "Выживание", description: "Шары ускоряются со временем" },
+            accuracy: { name: "Точность", description: "Лови только определенные цвета" }
+        };
         
         // МЕНЮ
         playBtn.addEventListener('click', () => {
             playBtn.style.display = 'none';
-            levelSelection.style.display = 'flex';
+            modeSelection.style.display = 'flex';
+        });
+        
+        modeBtns.forEach(btn => {
+            btn.addEventListener('click', () => {
+                const mode = btn.dataset.mode;
+                if (mode === 'free') {
+                    currentMode = mode;
+                    modeSelection.style.display = 'none';
+                    levelSelection.style.display = 'flex';
+                } else {
+                    // Для других режимов показываем сообщение
+                    alert('Этот режим появится в следующем обновлении! 🚀');
+                }
+            });
         });
         
         levelBtns.forEach(btn => {
@@ -272,6 +325,7 @@
             setTimeout(() => {
                 mainMenu.style.display = 'flex';
                 playBtn.style.display = 'block';
+                modeSelection.style.display = 'none';
                 levelSelection.style.display = 'none';
                 balls.forEach(ball => ball.element.remove());
                 balls = [];
@@ -468,6 +522,7 @@
             scoreDisplay.textContent = 'Очки: ' + score;
             livesDisplay.textContent = 'Жизни: ' + lives;
             levelDisplay.textContent = 'Уровень: ' + currentLevel + ' (' + levelSettings[currentLevel].name + ')';
+            modeDisplay.textContent = 'Режим: ' + modeSettings[currentMode].name;
         }
         
         document.addEventListener('contextmenu', (e) => e.preventDefault());
