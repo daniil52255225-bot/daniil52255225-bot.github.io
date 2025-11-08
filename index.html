@@ -137,12 +137,11 @@
             box-shadow: 0 0 20px rgba(255,255,255,0.5);
             color: white;
             text-shadow: 1px 1px 2px black;
-            /* Убираем вибрацию и задержки */
             touch-action: manipulation;
             -webkit-tap-highlight-color: transparent;
         }
         .controlBtn:active {
-            transform: scale(0.95); /* Лёгкая анимация вместо вибрации */
+            transform: scale(0.95);
         }
         @keyframes rainbow {
             0% { background-position: 0% 50%; }
@@ -265,17 +264,15 @@
         }
         
         function setupGame() {
-    // === ДОБАВЬ ЭТОТ КОД ===
-    // Автоматически определяем правую границу по размеру экрана
-    const gameWidth = gameContainer.offsetWidth;
-    const maxPlayerX = gameWidth - 100; // 100px - ширина платформы
-    
-    function updatePlayerPosition() {
-        if (playerX < 0) playerX = 0;
-        if (playerX > maxPlayerX) playerX = maxPlayerX;
-        player.style.left = playerX + 'px';
-    }
-    // === КОНЕЦ ДОБАВЛЕНИЯ ===
+            // Автоматически определяем правую границу
+            const gameWidth = gameContainer.offsetWidth;
+            const maxPlayerX = gameWidth - 150; // Отступ 150px
+            
+            function updatePlayerPosition() {
+                if (playerX < 0) playerX = 0;
+                if (playerX > maxPlayerX) playerX = maxPlayerX;
+                player.style.left = playerX + 'px';
+            }
             
             document.addEventListener('keydown', (e) => {
                 if (!gameActive) return;
@@ -284,15 +281,8 @@
                 updatePlayerPosition();
             });
             
-            // БЫСТРЫЕ КНОПКИ БЕЗ ЗАДЕРЖКИ
+            // БЫСТРЫЕ КНОПКИ
             function setupButtonControls() {
-                // Убираем старые обработчики
-                leftBtn.removeEventListener('touchstart', handleLeftStart);
-                leftBtn.removeEventListener('touchend', handleLeftEnd);
-                rightBtn.removeEventListener('touchstart', handleRightStart);
-                rightBtn.removeEventListener('touchend', handleRightEnd);
-                
-                // Новые быстрые обработчики
                 function handleLeftStart(e) {
                     e.preventDefault();
                     if (!gameActive) return;
@@ -323,13 +313,11 @@
                     clearInterval(moveInterval);
                 }
                 
-                // Добавляем новые обработчики
                 leftBtn.addEventListener('touchstart', handleLeftStart, { passive: false });
                 leftBtn.addEventListener('touchend', handleLeftEnd, { passive: false });
                 rightBtn.addEventListener('touchstart', handleRightStart, { passive: false });
                 rightBtn.addEventListener('touchend', handleRightEnd, { passive: false });
                 
-                // Для ПК
                 leftBtn.addEventListener('mousedown', handleLeftStart);
                 leftBtn.addEventListener('mouseup', handleLeftEnd);
                 leftBtn.addEventListener('mouseleave', handleLeftEnd);
@@ -340,23 +328,17 @@
             
             setupButtonControls();
             
-            // Создание шаров с ЗОЛОТЫМИ ШАРАМИ
+            // Создание шаров с ЗОЛОТЫМИ ШАРАМИ (СТАРЫЙ РАБОЧИЙ КОД)
             function createBall() {
                 const ball = document.createElement('div');
                 ball.className = 'ball';
-                const ballX = Math.random() * 770;
-                
-// ДОБАВЬ ЭТУ ПРОВЕРКУ:
-if (ballX > gameContainer.offsetWidth - 30) {
-    ballX = gameContainer.offsetWidth - 30; // Не даём вылезти за край
-}
+                const ballX = Math.random() * 770; // СТАРЫЙ ПРОВЕРЕННЫЙ КОД
                 ball.style.left = ballX + 'px';
                 ball.style.top = '0px';
                 gameContainer.appendChild(ball);
                 
                 ballCounter++;
                 
-                // Каждый 20-й шар - золотой и летит к платформе!
                 let isGold = false;
                 if (ballCounter % 20 === 0) {
                     ball.classList.add('gold');
@@ -380,7 +362,6 @@ if (ballX > gameContainer.offsetWidth - 30) {
                 for (let i = balls.length - 1; i >= 0; i--) {
                     const ball = balls[i];
                     
-                    // Золотые шары летят к платформе
                     if (ball.isGold && gameActive) {
                         ball.targetX = playerX + 50;
                         const dx = ball.targetX - ball.x;
@@ -391,7 +372,6 @@ if (ballX > gameContainer.offsetWidth - 30) {
                     ball.y += ball.speed;
                     ball.element.style.top = ball.y + 'px';
                     
-                    // Столкновение
                     const ballBottom = ball.y + 30;
                     const playerTop = 480;
                     
@@ -399,7 +379,6 @@ if (ballX > gameContainer.offsetWidth - 30) {
                         ball.x + 30 >= playerX && 
                         ball.x <= playerX + 100) {
                         
-                        // Золотой шар = +50 очков, обычный = +10
                         if (ball.isGold) {
                             score += 50;
                         } else {
@@ -412,13 +391,11 @@ if (ballX > gameContainer.offsetWidth - 30) {
                         continue;
                     }
                     
-                    // Шар упал
                     if (ball.y > 500) {
                         ball.element.remove();
                         balls.splice(i, 1);
                         missedBalls++;
                         
-                        // Проверка проигрыша
                         if (missedBalls >= 10) {
                             lives--;
                             missedBalls = 0;
