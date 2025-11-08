@@ -265,12 +265,17 @@
         }
         
         function setupGame() {
-            // Управление с ПРАВОЙ ГРАНИЦЕЙ 400px
-            function updatePlayerPosition() {
-                if (playerX < 0) playerX = 0;
-                if (playerX > 400) playerX = 400; // Теперь 400px!
-                player.style.left = playerX + 'px';
-            }
+    // === ДОБАВЬ ЭТОТ КОД ===
+    // Автоматически определяем правую границу по размеру экрана
+    const gameWidth = gameContainer.offsetWidth;
+    const maxPlayerX = gameWidth - 100; // 100px - ширина платформы
+    
+    function updatePlayerPosition() {
+        if (playerX < 0) playerX = 0;
+        if (playerX > maxPlayerX) playerX = maxPlayerX;
+        player.style.left = playerX + 'px';
+    }
+    // === КОНЕЦ ДОБАВЛЕНИЯ ===
             
             document.addEventListener('keydown', (e) => {
                 if (!gameActive) return;
