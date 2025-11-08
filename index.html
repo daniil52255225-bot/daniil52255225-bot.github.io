@@ -344,7 +344,12 @@
             function createBall() {
                 const ball = document.createElement('div');
                 ball.className = 'ball';
-                const ballX = Math.random() * (gameContainer.offsetWidht - 30);
+                const ballX = Math.random() * 770;
+                
+// ДОБАВЬ ЭТУ ПРОВЕРКУ:
+if (ballX > gameContainer.offsetWidth - 30) {
+    ballX = gameContainer.offsetWidth - 30; // Не даём вылезти за край
+}
                 ball.style.left = ballX + 'px';
                 ball.style.top = '0px';
                 gameContainer.appendChild(ball);
