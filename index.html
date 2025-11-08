@@ -63,6 +63,59 @@
             margin: 10px;
             color: #00ff88;
         }
+        #lives {
+            font-size: 20px;
+            color: #ff6b6b;
+            margin: 10px;
+        }
+        #level {
+            font-size: 20px;
+            color: #00ccff;
+            margin: 10px;
+        }
+        
+        /* МЕНЮ */
+        #mainMenu {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background: rgba(0, 0, 0, 0.95);
+            display: flex;
+            flex-direction: column;
+            justify-content: center;
+            align-items: center;
+            z-index: 1000;
+        }
+        .menuBtn {
+            padding: 15px 30px;
+            font-size: 20px;
+            background: linear-gradient(45deg, #00ff88, #00ccff);
+            border: none;
+            border-radius: 25px;
+            color: white;
+            cursor: pointer;
+            margin: 10px;
+            width: 200px;
+            box-shadow: 0 0 20px rgba(0, 255, 136, 0.5);
+        }
+        .levelBtn {
+            padding: 12px 25px;
+            font-size: 18px;
+            background: linear-gradient(45deg, #ff6b6b, #ffd93d);
+            border: none;
+            border-radius: 20px;
+            color: white;
+            cursor: pointer;
+            margin: 8px;
+            width: 180px;
+        }
+        #levelSelection {
+            display: none;
+            flex-direction: column;
+            align-items: center;
+        }
         #mobileControls {
             display: flex;
             justify-content: center;
@@ -107,11 +160,25 @@
     </style>
 </head>
 <body>
-    <h1>🎮 ЛОВЕЦ ШАРОВ v1.2 🎮</h1>
+    <h1>🎮 ЛОВЕЦ ШАРОВ v2.0 🎮</h1>
     <div id="score">Очки: 0</div>
+    <div id="lives">Жизни: 3</div>
+    <div id="level">Уровень: 1</div>
     
     <div id="gameContainer">
         <div id="player"></div>
+    </div>
+
+    <!-- ГЛАВНОЕ МЕНЮ -->
+    <div id="mainMenu">
+        <h1 style="font-size: 48px; color: #00ff88; margin-bottom: 30px;">🎯 ЛОВЕЦ ШАРОВ</h1>
+        <button class="menuBtn" id="playBtn">ИГРАТЬ</button>
+        <div id="levelSelection">
+            <h2 style="color: #00ccff; margin-bottom: 20px;">ВЫБЕРИ УРОВЕНЬ</h2>
+            <button class="levelBtn" data-level="1">🎮 Уровень 1 (Лёгкий)</button>
+            <button class="levelBtn" data-level="2">⚡ Уровень 2 (Средний)</button>
+            <button class="levelBtn" data-level="3">🔥 Уровень 3 (Сложный)</button>
+        </div>
     </div>
 
     <div id="mobileControls">
@@ -119,163 +186,234 @@
         <button class="controlBtn" id="rightBtn">→</button>
     </div>
 
-    <div id="version">v1.2</div>
+    <div id="version">v2.0</div>
 
     <script>
         const gameContainer = document.getElementById('gameContainer');
         const player = document.getElementById('player');
         const scoreDisplay = document.getElementById('score');
+        const livesDisplay = document.getElementById('lives');
+        const levelDisplay = document.getElementById('level');
         const leftBtn = document.getElementById('leftBtn');
         const rightBtn = document.getElementById('rightBtn');
+        const mainMenu = document.getElementById('mainMenu');
+        const playBtn = document.getElementById('playBtn');
+        const levelSelection = document.getElementById('levelSelection');
+        const levelBtns = document.querySelectorAll('.levelBtn');
         
         let playerX = 350;
         let score = 0;
         let balls = [];
         let moveInterval;
         let ballCounter = 0;
+        let lives = 3;
+        let currentLevel = 1;
+        let missedBalls = 0;
+        let gameActive = false;
         
-        // Управление с ПРАВОЙ ГРАНИЦЕЙ 500px
-        function updatePlayerPosition() {
-            if (playerX < 0) playerX = 0;
-            if (playerX > 500) playerX = 500;
-            player.style.left = playerX + 'px';
-        }
+        // НАСТРОЙКИ УРОВНЕЙ
+        const levelSettings = {
+            1: { speed: 2, interval: 800, name: "Лёгкий" },
+            2: { speed: 3, interval: 600, name: "Средний" },
+            3: { speed: 4, interval: 400, name: "Сложный" }
+        };
         
-        document.addEventListener('keydown', (e) => {
-            if (e.key === 'ArrowLeft') playerX -= 20;
-            if (e.key === 'ArrowRight') playerX += 20;
-            updatePlayerPosition();
+        // МЕНЮ
+        playBtn.addEventListener('click', () => {
+            playBtn.style.display = 'none';
+            levelSelection.style.display = 'flex';
         });
         
-        // Кнопки управления
-        leftBtn.addEventListener('touchstart', (e) => {
-            e.preventDefault();
-            moveLeft();
-        });
-        rightBtn.addEventListener('touchstart', (e) => {
-            e.preventDefault();
-            moveRight();
+        levelBtns.forEach(btn => {
+            btn.addEventListener('click', () => {
+                currentLevel = parseInt(btn.dataset.level);
+                startGame();
+            });
         });
         
-        leftBtn.addEventListener('mousedown', (e) => {
-            e.preventDefault();
-            moveLeft();
-        });
-        rightBtn.addEventListener('mousedown', (e) => {
-            e.preventDefault();
-            moveRight();
-        });
-        
-        document.addEventListener('touchend', (e) => {
-            e.preventDefault();
-            stopMove();
-        });
-        document.addEventListener('mouseup', (e) => {
-            e.preventDefault();
-            stopMove();
-        });
-        
-        function moveLeft() {
-            clearInterval(moveInterval);
-            moveInterval = setInterval(() => {
-                playerX -= 5;
-                updatePlayerPosition();
-            }, 16);
-        }
-        
-        function moveRight() {
-            clearInterval(moveInterval);
-            moveInterval = setInterval(() => {
-                playerX += 5;
-                updatePlayerPosition();
-            }, 16);
-        }
-        
-        function stopMove() {
-            clearInterval(moveInterval);
-        }
-        
-        // Создание шаров с ЗОЛОТЫМИ ШАРАМИ
-        function createBall() {
-            const ball = document.createElement('div');
-            ball.className = 'ball';
-            const ballX = Math.random() * 770;
-            ball.style.left = ballX + 'px';
-            ball.style.top = '0px';
-            gameContainer.appendChild(ball);
+        function startGame() {
+            mainMenu.style.display = 'none';
+            gameActive = true;
+            score = 0;
+            lives = 3;
+            missedBalls = 0;
+            balls.forEach(ball => ball.element.remove());
+            balls = [];
             
-            ballCounter++;
+            updateUI();
+            setupGame();
+        }
+        
+        function gameOver() {
+            gameActive = false;
+            clearInterval(ballInterval);
+            if (moveInterval) clearInterval(moveInterval);
             
-            // Каждый 20-й шар - золотой и летит к платформе!
-            let isGold = false;
-            if (ballCounter % 20 === 0) {
-                ball.classList.add('gold');
-                isGold = true;
+            setTimeout(() => {
+                mainMenu.style.display = 'flex';
+                playBtn.style.display = 'block';
+                levelSelection.style.display = 'none';
+                balls.forEach(ball => ball.element.remove());
+                balls = [];
+            }, 1500);
+        }
+        
+        function setupGame() {
+            // Управление с ПРАВОЙ ГРАНИЦЕЙ 500px
+            function updatePlayerPosition() {
+                if (playerX < 0) playerX = 0;
+                if (playerX > 500) playerX = 500;
+                player.style.left = playerX + 'px';
             }
             
-            balls.push({
-                element: ball,
-                x: parseInt(ballX),
-                y: 0,
-                speed: 2 + Math.random() * 3,
-                isGold: isGold,
-                targetX: playerX + 50 // Цель - центр платформы
+            document.addEventListener('keydown', (e) => {
+                if (!gameActive) return;
+                if (e.key === 'ArrowLeft') playerX -= 20;
+                if (e.key === 'ArrowRight') playerX += 20;
+                updatePlayerPosition();
             });
-        }
-        
-        // Движение и столкновения
-        function moveBalls() {
-            for (let i = balls.length - 1; i >= 0; i--) {
-                const ball = balls[i];
+            
+            // Кнопки управления
+            leftBtn.addEventListener('touchstart', moveLeft);
+            rightBtn.addEventListener('touchstart', moveRight);
+            leftBtn.addEventListener('mousedown', moveLeft);
+            rightBtn.addEventListener('mousedown', moveRight);
+            document.addEventListener('touchend', stopMove);
+            document.addEventListener('mouseup', stopMove);
+            
+            function moveLeft() {
+                if (!gameActive) return;
+                clearInterval(moveInterval);
+                moveInterval = setInterval(() => {
+                    playerX -= 5;
+                    updatePlayerPosition();
+                }, 16);
+            }
+            
+            function moveRight() {
+                if (!gameActive) return;
+                clearInterval(moveInterval);
+                moveInterval = setInterval(() => {
+                    playerX += 5;
+                    updatePlayerPosition();
+                }, 16);
+            }
+            
+            function stopMove() {
+                clearInterval(moveInterval);
+            }
+            
+            // Создание шаров с ЗОЛОТЫМИ ШАРАМИ
+            function createBall() {
+                const ball = document.createElement('div');
+                ball.className = 'ball';
+                const ballX = Math.random() * 770;
+                ball.style.left = ballX + 'px';
+                ball.style.top = '0px';
+                gameContainer.appendChild(ball);
                 
-                // Золотые шары летят к платформе
-                if (ball.isGold) {
-                    ball.targetX = playerX + 50;
-                    const dx = ball.targetX - (ball.x + 15);
-                    ball.x += dx * 0.1; // Движение к платформе
-                    ball.element.style.left = ball.x + 'px';
+                ballCounter++;
+                
+                // Каждый 20-й шар - золотой и летит к платформе!
+                let isGold = false;
+                if (ballCounter % 20 === 0) {
+                    ball.classList.add('gold');
+                    isGold = true;
                 }
                 
-                ball.y += ball.speed;
-                ball.element.style.top = ball.y + 'px';
+                const settings = levelSettings[currentLevel];
                 
-                // Столкновение
-                const ballBottom = ball.y + 30;
-                const playerTop = 480;
-                
-                if (ballBottom >= playerTop && 
-                    ball.x + 30 >= playerX && 
-                    ball.x <= playerX + 100) {
+                balls.push({
+                    element: ball,
+                    x: parseInt(ballX),
+                    y: 0,
+                    speed: settings.speed + Math.random() * 2,
+                    isGold: isGold,
+                    targetX: playerX + 50
+                });
+            }
+            
+            // Движение и столкновения
+            function moveBalls() {
+                for (let i = balls.length - 1; i >= 0; i--) {
+                    const ball = balls[i];
                     
-                    // Золотой шар = +50 очков, обычный = +10
-                    if (ball.isGold) {
-                        score += 50;
-                    } else {
-                        score += 10;
+                    // Золотые шары летят к платформе
+                    if (ball.isGold && gameActive) {
+                        ball.targetX = playerX + 50;
+                        const dx = ball.targetX - ball.x;
+                        ball.x += dx * 0.05;
+                        ball.element.style.left = ball.x + 'px';
                     }
                     
-                    scoreDisplay.textContent = 'Очки: ' + score;
-                    ball.element.remove();
-                    balls.splice(i, 1);
-                    continue;
-                }
-                
-                // Шар упал
-                if (ball.y > 500) {
-                    ball.element.remove();
-                    balls.splice(i, 1);
+                    ball.y += ball.speed;
+                    ball.element.style.top = ball.y + 'px';
+                    
+                    // Столкновение
+                    const ballBottom = ball.y + 30;
+                    const playerTop = 480;
+                    
+                    if (ballBottom >= playerTop && 
+                        ball.x + 30 >= playerX && 
+                        ball.x <= playerX + 100) {
+                        
+                        // Золотой шар = +50 очков, обычный = +10
+                        if (ball.isGold) {
+                            score += 50;
+                        } else {
+                            score += 10;
+                        }
+                        
+                        updateUI();
+                        ball.element.remove();
+                        balls.splice(i, 1);
+                        continue;
+                    }
+                    
+                    // Шар упал
+                    if (ball.y > 500) {
+                        ball.element.remove();
+                        balls.splice(i, 1);
+                        missedBalls++;
+                        
+                        // Проверка проигрыша
+                        if (missedBalls >= 10) {
+                            lives--;
+                            missedBalls = 0;
+                            updateUI();
+                            
+                            if (lives <= 0) {
+                                gameOver();
+                            }
+                        }
+                    }
                 }
             }
+            
+            // Запуск игры
+            const settings = levelSettings[currentLevel];
+            const ballInterval = setInterval(() => {
+                if (!gameActive) {
+                    clearInterval(ballInterval);
+                    return;
+                }
+                createBall();
+            }, settings.interval);
+            
+            function gameLoop() {
+                if (!gameActive) return;
+                moveBalls();
+                requestAnimationFrame(gameLoop);
+            }
+            gameLoop();
+            updatePlayerPosition();
         }
         
-        // Запуск игры
-        setInterval(createBall, 500);
-        function gameLoop() {
-            moveBalls();
-            requestAnimationFrame(gameLoop);
+        function updateUI() {
+            scoreDisplay.textContent = 'Очки: ' + score;
+            livesDisplay.textContent = 'Жизни: ' + lives;
+            levelDisplay.textContent = 'Уровень: ' + currentLevel + ' (' + levelSettings[currentLevel].name + ')';
         }
-        gameLoop();
-        updatePlayerPosition();
         
         document.addEventListener('contextmenu', (e) => e.preventDefault());
     </script>
