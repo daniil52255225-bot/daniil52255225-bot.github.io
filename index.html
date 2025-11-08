@@ -137,6 +137,12 @@
             box-shadow: 0 0 20px rgba(255,255,255,0.5);
             color: white;
             text-shadow: 1px 1px 2px black;
+            /* Убираем вибрацию и задержки */
+            touch-action: manipulation;
+            -webkit-tap-highlight-color: transparent;
+        }
+        .controlBtn:active {
+            transform: scale(0.95); /* Лёгкая анимация вместо вибрации */
         }
         @keyframes rainbow {
             0% { background-position: 0% 50%; }
@@ -259,10 +265,10 @@
         }
         
         function setupGame() {
-            // Управление с ПРАВОЙ ГРАНИЦЕЙ 500px
+            // Управление с ПРАВОЙ ГРАНИЦЕЙ 400px
             function updatePlayerPosition() {
                 if (playerX < 0) playerX = 0;
-                if (playerX > 500) playerX = 500;
+                if (playerX > 400) playerX = 400; // Теперь 400px!
                 player.style.left = playerX + 'px';
             }
             
@@ -273,35 +279,61 @@
                 updatePlayerPosition();
             });
             
-            // Кнопки управления
-            leftBtn.addEventListener('touchstart', moveLeft);
-            rightBtn.addEventListener('touchstart', moveRight);
-            leftBtn.addEventListener('mousedown', moveLeft);
-            rightBtn.addEventListener('mousedown', moveRight);
-            document.addEventListener('touchend', stopMove);
-            document.addEventListener('mouseup', stopMove);
-            
-            function moveLeft() {
-                if (!gameActive) return;
-                clearInterval(moveInterval);
-                moveInterval = setInterval(() => {
-                    playerX -= 5;
-                    updatePlayerPosition();
-                }, 16);
+            // БЫСТРЫЕ КНОПКИ БЕЗ ЗАДЕРЖКИ
+            function setupButtonControls() {
+                // Убираем старые обработчики
+                leftBtn.removeEventListener('touchstart', handleLeftStart);
+                leftBtn.removeEventListener('touchend', handleLeftEnd);
+                rightBtn.removeEventListener('touchstart', handleRightStart);
+                rightBtn.removeEventListener('touchend', handleRightEnd);
+                
+                // Новые быстрые обработчики
+                function handleLeftStart(e) {
+                    e.preventDefault();
+                    if (!gameActive) return;
+                    clearInterval(moveInterval);
+                    moveInterval = setInterval(() => {
+                        playerX -= 8;
+                        updatePlayerPosition();
+                    }, 16);
+                }
+                
+                function handleLeftEnd(e) {
+                    e.preventDefault();
+                    clearInterval(moveInterval);
+                }
+                
+                function handleRightStart(e) {
+                    e.preventDefault();
+                    if (!gameActive) return;
+                    clearInterval(moveInterval);
+                    moveInterval = setInterval(() => {
+                        playerX += 8;
+                        updatePlayerPosition();
+                    }, 16);
+                }
+                
+                function handleRightEnd(e) {
+                    e.preventDefault();
+                    clearInterval(moveInterval);
+                }
+                
+                // Добавляем новые обработчики
+                leftBtn.addEventListener('touchstart', handleLeftStart, { passive: false });
+                leftBtn.addEventListener('touchend', handleLeftEnd, { passive: false });
+                rightBtn.addEventListener('touchstart', handleRightStart, { passive: false });
+                rightBtn.addEventListener('touchend', handleRightEnd, { passive: false });
+                
+                // Для ПК
+                leftBtn.addEventListener('mousedown', handleLeftStart);
+                leftBtn.addEventListener('mouseup', handleLeftEnd);
+                leftBtn.addEventListener('mouseleave', handleLeftEnd);
+                rightBtn.addEventListener('mousedown', handleRightStart);
+                rightBtn.addEventListener('mouseup', handleRightEnd);
+                rightBtn.addEventListener('mouseleave', handleRightEnd);
             }
             
-            function moveRight() {
-                if (!gameActive) return;
-                clearInterval(moveInterval);
-                moveInterval = setInterval(() => {
-                    playerX += 5;
-                    updatePlayerPosition();
-                }, 16);
-            }
-            
-            function stopMove() {
-                clearInterval(moveInterval);
-            }
+            setupButtonControls();
             
             // Создание шаров с ЗОЛОТЫМИ ШАРАМИ
             function createBall() {
