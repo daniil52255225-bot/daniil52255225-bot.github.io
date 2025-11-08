@@ -368,8 +368,8 @@
                     ball.classList.add('gold');
                     isGold = true;
                 } 
-                // Проверяем случай для бомбы (5% шанс)
-                else if (Math.random() < 0.05) {
+                // Проверяем случай для бомбы (30% шанс)
+                else if (Math.random() < 0.3) {
                     ball.classList.add('bomb');
                     isBomb = true;
                 }
@@ -412,7 +412,7 @@
                         if (ball.isGold) {
                             score += 50;
                         } else if (ball.isBomb) {
-                            score -= 5;
+                            score -= 20; // -20 очков за бомбу
                             if (score < 0) score = 0;
                         } else {
                             score += 10;
