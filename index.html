@@ -78,6 +78,16 @@
             margin: 10px;
             color: #00ff88;
         }
+        #coins {
+            font-size: 20px;
+            color: #ffd700;
+            margin: 10px;
+        }
+        #timer {
+            font-size: 20px;
+            color: #ff6b6b;
+            margin: 10px;
+        }
         #lives {
             font-size: 20px;
             color: #ff6b6b;
@@ -91,16 +101,6 @@
         #mode {
             font-size: 20px;
             color: #ffd700;
-            margin: 10px;
-        }
-        #coins {
-            font-size: 20px;
-            color: #ffd700;
-            margin: 10px;
-        }
-        #timer {
-            font-size: 20px;
-            color: #ff6b6b;
             margin: 10px;
         }
         
@@ -129,6 +129,8 @@
             margin: 10px;
             width: 200px;
             box-shadow: 0 0 20px rgba(0, 255, 136, 0.5);
+            position: relative;
+            z-index: 1001;
         }
         .modeBtn {
             padding: 15px 30px;
@@ -140,6 +142,8 @@
             cursor: pointer;
             margin: 8px;
             width: 220px;
+            position: relative;
+            z-index: 1001;
         }
         .levelBtn {
             padding: 12px 25px;
@@ -151,6 +155,8 @@
             cursor: pointer;
             margin: 8px;
             width: 180px;
+            position: relative;
+            z-index: 1001;
         }
         
         /* ЭКРАН ЗАВЕРШЕНИЯ РАУНДА */
@@ -177,6 +183,8 @@
             cursor: pointer;
             margin: 8px;
             width: 180px;
+            position: relative;
+            z-index: 2001;
         }
         
         /* МАГАЗИН */
@@ -201,6 +209,8 @@
             margin: 10px;
             width: 300px;
             text-align: center;
+            position: relative;
+            z-index: 3001;
         }
         .buyBtn {
             padding: 10px 20px;
@@ -212,17 +222,23 @@
             cursor: pointer;
             margin-top: 10px;
             width: 120px;
+            position: relative;
+            z-index: 3002;
         }
         
         #modeSelection {
             display: none;
             flex-direction: column;
             align-items: center;
+            position: relative;
+            z-index: 1001;
         }
         #levelSelection {
             display: none;
             flex-direction: column;
             align-items: center;
+            position: relative;
+            z-index: 1001;
         }
         #mobileControls {
             display: flex;
@@ -230,6 +246,8 @@
             gap: 50px;
             margin: 20px auto;
             max-width: 800px;
+            position: relative;
+            z-index: 500;
         }
         .controlBtn {
             width: 80px;
@@ -247,6 +265,8 @@
             text-shadow: 1px 1px 2px black;
             touch-action: manipulation;
             -webkit-tap-highlight-color: transparent;
+            position: relative;
+            z-index: 501;
         }
         .controlBtn:active {
             transform: scale(0.95);
@@ -269,6 +289,7 @@
             padding: 5px;
             border-radius: 10px;
             font-weight: bold;
+            z-index: 500;
         }
     </style>
 </head>
@@ -287,7 +308,7 @@
 
     <!-- ГЛАВНОЕ МЕНЮ -->
     <div id="mainMenu">
-        <h1 style="font-size: 48px; color: #00ff88; margin-bottom: 30px;">🎯 ЛОВЕЦ ШАРОВ</h1>
+        <h1 style="font-size: 48px; color: #00ff88; margin-bottom: 30px; z-index: 1001; position: relative;">🎯 ЛОВЕЦ ШАРОВ</h1>
         <button class="menuBtn" id="playBtn">ИГРАТЬ</button>
         <button class="menuBtn" id="shopBtn">МАГАЗИН</button>
         <div id="modeSelection">
@@ -306,7 +327,7 @@
 
     <!-- ЭКРАН ЗАВЕРШЕНИЯ РАУНДА -->
     <div id="roundEndScreen">
-        <h1 style="font-size: 36px; color: #00ff88; margin-bottom: 20px;">🎉 Раунд закончен!</h1>
+        <h1 style="font-size: 36px; color: #00ff88; margin-bottom: 20px; z-index: 2001; position: relative;">🎉 Раунд закончен!</h1>
         <div id="finalScore" style="font-size: 24px; color: #ffd700; margin-bottom: 10px;">Очки: 0</div>
         <div id="earnedCoins" style="font-size: 24px; color: #ffd700; margin-bottom: 30px;">Заработано монет: 0</div>
         <button class="endBtn" id="playAgainBtn">Играть снова</button>
@@ -316,7 +337,7 @@
 
     <!-- МАГАЗИН -->
     <div id="shopScreen">
-        <h1 style="font-size: 36px; color: #ffd700; margin-bottom: 20px;">🛒 МАГАЗИН</h1>
+        <h1 style="font-size: 36px; color: #ffd700; margin-bottom: 20px; z-index: 3001; position: relative;">🛒 МАГАЗИН</h1>
         <div id="currentCoins" style="font-size: 24px; color: #00ff88; margin-bottom: 30px;">Монеты: 0</div>
         
         <div class="shopItem">
@@ -333,7 +354,7 @@
             <button class="buyBtn" id="buyMultiplierBtn">Купить за 10</button>
         </div>
         
-        <button class="endBtn" id="backFromShopBtn">Назад</button>
+        <button class="endBtn" id="backFromShopBtn" style="z-index: 3001;">Назад</button>
     </div>
 
     <div id="mobileControls">
@@ -344,6 +365,7 @@
     <div id="version">v4.0</div>
 
     <script>
+        // ИНИЦИАЛИЗАЦИЯ ПЕРЕМЕННЫХ
         const gameContainer = document.getElementById('gameContainer');
         const player = document.getElementById('player');
         const scoreDisplay = document.getElementById('score');
@@ -392,11 +414,12 @@
         let missedBalls = 0;
         let gameActive = false;
         let gameTimer;
+        let ballInterval;
         
         // Прокачка игрока
         let playerUpgrades = {
-            platformLength: 1, // Уровень длины платформы
-            coinMultiplier: 1  // Множитель монет (базовый 1 монета за 10 очков)
+            platformLength: 1,
+            coinMultiplier: 1
         };
         
         // НАСТРОЙКИ УРОВНЕЙ
@@ -413,9 +436,120 @@
             accuracy: { name: "Точность", description: "Лови только определенные цвета" }
         };
         
-        // ИНИЦИАЛИЗАЦИЯ
+        // ИНИЦИАЛИЗАЦИЯ ИГРЫ
         function initGame() {
+            console.log("Игра инициализирована!");
             loadProgress();
+            updateShopUI();
+            setupEventListeners();
+        }
+        
+        // НАСТРОЙКА ВСЕХ ОБРАБОТЧИКОВ СОБЫТИЙ
+        function setupEventListeners() {
+            console.log("Настраиваю обработчики событий...");
+            
+            // Главное меню
+            playBtn.addEventListener('click', () => {
+                console.log("Нажата кнопка ИГРАТЬ");
+                playBtn.style.display = 'none';
+                shopBtn.style.display = 'none';
+                modeSelection.style.display = 'flex';
+            });
+            
+            shopBtn.addEventListener('click', () => {
+                console.log("Нажата кнопка МАГАЗИН");
+                showShop();
+            });
+            
+            // Выбор режима
+            modeBtns.forEach(btn => {
+                btn.addEventListener('click', (e) => {
+                    console.log("Нажата кнопка режима:", e.target.dataset.mode);
+                    const mode = e.target.dataset.mode;
+                    if (mode === 'free') {
+                        currentMode = mode;
+                        modeSelection.style.display = 'none';
+                        levelSelection.style.display = 'flex';
+                    } else {
+                        alert('Этот режим появится в следующем обновлении! 🚀');
+                    }
+                });
+            });
+            
+            // Выбор уровня
+            levelBtns.forEach(btn => {
+                btn.addEventListener('click', (e) => {
+                    console.log("Нажата кнопка уровня:", e.target.dataset.level);
+                    currentLevel = parseInt(e.target.dataset.level);
+                    startGame();
+                });
+            });
+            
+            // Завершение раунда
+            playAgainBtn.addEventListener('click', () => {
+                console.log("Нажата кнопка Играть снова");
+                roundEndScreen.style.display = 'none';
+                startGame();
+            });
+            
+            menuBtn.addEventListener('click', () => {
+                console.log("Нажата кнопка Меню");
+                roundEndScreen.style.display = 'none';
+                showMainMenu();
+            });
+            
+            shopFromEndBtn.addEventListener('click', () => {
+                console.log("Нажата кнопка Магазин из конца раунда");
+                roundEndScreen.style.display = 'none';
+                showShop();
+            });
+            
+            // Магазин
+            backFromShopBtn.addEventListener('click', () => {
+                console.log("Нажата кнопка Назад из магазина");
+                shopScreen.style.display = 'none';
+                showMainMenu();
+            });
+            
+            buyPlatformBtn.addEventListener('click', () => {
+                console.log("Нажата кнопка покупки платформы");
+                if (coins >= 10) {
+                    coins -= 10;
+                    playerUpgrades.platformLength++;
+                    updatePlayerAppearance();
+                    saveProgress();
+                    updateShopUI();
+                } else {
+                    alert('Недостаточно монет!');
+                }
+            });
+            
+            buyMultiplierBtn.addEventListener('click', () => {
+                console.log("Нажата кнопка покупки множителя");
+                if (coins >= 10) {
+                    coins -= 10;
+                    playerUpgrades.coinMultiplier++;
+                    saveProgress();
+                    updateShopUI();
+                } else {
+                    alert('Недостаточно монет!');
+                }
+            });
+            
+            console.log("Все обработчики событий настроены!");
+        }
+        
+        function showMainMenu() {
+            mainMenu.style.display = 'flex';
+            playBtn.style.display = 'block';
+            shopBtn.style.display = 'block';
+            modeSelection.style.display = 'none';
+            levelSelection.style.display = 'none';
+        }
+        
+        function showShop() {
+            mainMenu.style.display = 'none';
+            shopScreen.style.display = 'flex';
             updateShopUI();
         }
         
@@ -432,151 +566,4 @@
             const saved = localStorage.getItem('ballCatcherProgress');
             if (saved) {
                 const progress = JSON.parse(saved);
-                coins = progress.coins || 0;
-                playerUpgrades = progress.upgrades || { platformLength: 1, coinMultiplier: 1 };
-                updatePlayerAppearance();
-            }
-        }
-        
-        // МЕНЮ
-        playBtn.addEventListener('click', () => {
-            playBtn.style.display = 'none';
-            shopBtn.style.display = 'none';
-            modeSelection.style.display = 'flex';
-        });
-        
-        shopBtn.addEventListener('click', () => {
-            showShop();
-        });
-        
-        modeBtns.forEach(btn => {
-            btn.addEventListener('click', () => {
-                const mode = btn.dataset.mode;
-                if (mode === 'free') {
-                    currentMode = mode;
-                    modeSelection.style.display = 'none';
-                    levelSelection.style.display = 'flex';
-                } else {
-                    alert('Этот режим появится в следующем обновлении! 🚀');
-                }
-            });
-        });
-        
-        levelBtns.forEach(btn => {
-            btn.addEventListener('click', () => {
-                currentLevel = parseInt(btn.dataset.level);
-                startGame();
-            });
-        });
-        
-        // ЗАВЕРШЕНИЕ РАУНДА
-        playAgainBtn.addEventListener('click', () => {
-            roundEndScreen.style.display = 'none';
-            startGame();
-        });
-        
-        menuBtn.addEventListener('click', () => {
-            roundEndScreen.style.display = 'none';
-            mainMenu.style.display = 'flex';
-            playBtn.style.display = 'block';
-            shopBtn.style.display = 'block';
-            modeSelection.style.display = 'none';
-            levelSelection.style.display = 'none';
-        });
-        
-        shopFromEndBtn.addEventListener('click', () => {
-            roundEndScreen.style.display = 'none';
-            showShop();
-        });
-        
-        // МАГАЗИН
-        function showShop() {
-            mainMenu.style.display = 'none';
-            shopScreen.style.display = 'flex';
-            updateShopUI();
-        }
-        
-        backFromShopBtn.addEventListener('click', () => {
-            shopScreen.style.display = 'none';
-            mainMenu.style.display = 'flex';
-        });
-        
-        buyPlatformBtn.addEventListener('click', () => {
-            if (coins >= 10) {
-                coins -= 10;
-                playerUpgrades.platformLength++;
-                updatePlayerAppearance();
-                saveProgress();
-                updateShopUI();
-            } else {
-                alert('Недостаточно монет!');
-            }
-        });
-        
-        buyMultiplierBtn.addEventListener('click', () => {
-            if (coins >= 10) {
-                coins -= 10;
-                playerUpgrades.coinMultiplier++;
-                saveProgress();
-                updateShopUI();
-            } else {
-                alert('Недостаточно монет!');
-            }
-        });
-        
-        function updateShopUI() {
-            currentCoins.textContent = 'Монеты: ' + coins;
-            platformLevel.textContent = 'Уровень: ' + playerUpgrades.platformLength;
-            multiplierLevel.textContent = 'Уровень: ' + playerUpgrades.coinMultiplier;
-            buyPlatformBtn.textContent = 'Купить за 10';
-            buyMultiplierBtn.textContent = 'Купить за 10';
-        }
-        
-        function updatePlayerAppearance() {
-            const baseWidth = 100;
-            const extraWidth = (playerUpgrades.platformLength - 1) * 10; // +5px с каждой стороны за уровень
-            player.style.width = (baseWidth + extraWidth) + 'px';
-        }
-        
-        function startGame() {
-            mainMenu.style.display = 'none';
-            gameActive = true;
-            score = 0;
-            timeLeft = 40;
-            lives = 3;
-            missedBalls = 0;
-            balls.forEach(ball => ball.element.remove());
-            balls = [];
-            
-            updateUI();
-            startTimer();
-            setupGame();
-        }
-        
-        function startTimer() {
-            clearInterval(gameTimer);
-            gameTimer = setInterval(() => {
-                if (!gameActive) return;
-                
-                timeLeft--;
-                timerDisplay.textContent = 'Время: ' + timeLeft;
-                
-                if (timeLeft <= 0) {
-                    endRound();
-                }
-            }, 1000);
-        }
-        
-        function endRound() {
-            gameActive = false;
-            clearInterval(gameTimer);
-            clearInterval(ballInterval);
-            if (moveInterval) clearInterval(moveInterval);
-            
-            // Расчет заработанных монет
-            const coinsEarned = Math.floor(score / 10) * playerUpgrades.coinMultiplier;
-            coins += coinsEarned;
-            
-            // Показ экрана завершения
-            finalScore.textContent = 'Очки: ' + score;
-           
+                coins = progress.coins || 0
