@@ -93,6 +93,16 @@
             color: #ffd700;
             margin: 10px;
         }
+        #coins {
+            font-size: 20px;
+            color: #ffd700;
+            margin: 10px;
+        }
+        #timer {
+            font-size: 20px;
+            color: #ff6b6b;
+            margin: 10px;
+        }
         
         /* МЕНЮ */
         #mainMenu {
@@ -142,6 +152,68 @@
             margin: 8px;
             width: 180px;
         }
+        
+        /* ЭКРАН ЗАВЕРШЕНИЯ РАУНДА */
+        #roundEndScreen {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background: rgba(0, 0, 0, 0.9);
+            display: none;
+            flex-direction: column;
+            justify-content: center;
+            align-items: center;
+            z-index: 2000;
+        }
+        .endBtn {
+            padding: 12px 25px;
+            font-size: 18px;
+            background: linear-gradient(45deg, #00ff88, #00ccff);
+            border: none;
+            border-radius: 20px;
+            color: white;
+            cursor: pointer;
+            margin: 8px;
+            width: 180px;
+        }
+        
+        /* МАГАЗИН */
+        #shopScreen {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background: rgba(0, 0, 0, 0.95);
+            display: none;
+            flex-direction: column;
+            justify-content: center;
+            align-items: center;
+            z-index: 3000;
+        }
+        .shopItem {
+            background: linear-gradient(45deg, #1a1a2e, #16213e);
+            border: 2px solid #00ff88;
+            border-radius: 15px;
+            padding: 15px;
+            margin: 10px;
+            width: 300px;
+            text-align: center;
+        }
+        .buyBtn {
+            padding: 10px 20px;
+            font-size: 16px;
+            background: linear-gradient(45deg, #ffd700, #ff9900);
+            border: none;
+            border-radius: 15px;
+            color: white;
+            cursor: pointer;
+            margin-top: 10px;
+            width: 120px;
+        }
+        
         #modeSelection {
             display: none;
             flex-direction: column;
@@ -201,8 +273,10 @@
     </style>
 </head>
 <body>
-    <h1>🎮 ЛОВЕЦ ШАРОВ v3.0 🎮</h1>
+    <h1>🎮 ЛОВЕЦ ШАРОВ v4.0 🎮</h1>
     <div id="score">Очки: 0</div>
+    <div id="coins">Монеты: 0</div>
+    <div id="timer">Время: 40</div>
     <div id="lives">Жизни: 3</div>
     <div id="level">Уровень: 1</div>
     <div id="mode">Режим: Свободная игра</div>
@@ -215,6 +289,7 @@
     <div id="mainMenu">
         <h1 style="font-size: 48px; color: #00ff88; margin-bottom: 30px;">🎯 ЛОВЕЦ ШАРОВ</h1>
         <button class="menuBtn" id="playBtn">ИГРАТЬ</button>
+        <button class="menuBtn" id="shopBtn">МАГАЗИН</button>
         <div id="modeSelection">
             <h2 style="color: #ffd700; margin-bottom: 20px;">ВЫБЕРИ РЕЖИМ</h2>
             <button class="modeBtn" data-mode="free">🎮 Свободная игра</button>
@@ -229,17 +304,51 @@
         </div>
     </div>
 
+    <!-- ЭКРАН ЗАВЕРШЕНИЯ РАУНДА -->
+    <div id="roundEndScreen">
+        <h1 style="font-size: 36px; color: #00ff88; margin-bottom: 20px;">🎉 Раунд закончен!</h1>
+        <div id="finalScore" style="font-size: 24px; color: #ffd700; margin-bottom: 10px;">Очки: 0</div>
+        <div id="earnedCoins" style="font-size: 24px; color: #ffd700; margin-bottom: 30px;">Заработано монет: 0</div>
+        <button class="endBtn" id="playAgainBtn">Играть снова</button>
+        <button class="endBtn" id="menuBtn">Меню</button>
+        <button class="endBtn" id="shopFromEndBtn">Магазин</button>
+    </div>
+
+    <!-- МАГАЗИН -->
+    <div id="shopScreen">
+        <h1 style="font-size: 36px; color: #ffd700; margin-bottom: 20px;">🛒 МАГАЗИН</h1>
+        <div id="currentCoins" style="font-size: 24px; color: #00ff88; margin-bottom: 30px;">Монеты: 0</div>
+        
+        <div class="shopItem">
+            <h3>📏 Длина платформы</h3>
+            <div id="platformLevel">Уровень: 1</div>
+            <div>+5px к длине с каждой стороны</div>
+            <button class="buyBtn" id="buyPlatformBtn">Купить за 10</button>
+        </div>
+        
+        <div class="shopItem">
+            <h3>💰 Множитель денег</h3>
+            <div id="multiplierLevel">Уровень: 1</div>
+            <div>+1 монета за каждые 10 очков</div>
+            <button class="buyBtn" id="buyMultiplierBtn">Купить за 10</button>
+        </div>
+        
+        <button class="endBtn" id="backFromShopBtn">Назад</button>
+    </div>
+
     <div id="mobileControls">
         <button class="controlBtn" id="leftBtn">←</button>
         <button class="controlBtn" id="rightBtn">→</button>
     </div>
 
-    <div id="version">v3.0</div>
+    <div id="version">v4.0</div>
 
     <script>
         const gameContainer = document.getElementById('gameContainer');
         const player = document.getElementById('player');
         const scoreDisplay = document.getElementById('score');
+        const coinsDisplay = document.getElementById('coins');
+        const timerDisplay = document.getElementById('timer');
         const livesDisplay = document.getElementById('lives');
         const levelDisplay = document.getElementById('level');
         const modeDisplay = document.getElementById('mode');
@@ -247,13 +356,33 @@
         const rightBtn = document.getElementById('rightBtn');
         const mainMenu = document.getElementById('mainMenu');
         const playBtn = document.getElementById('playBtn');
+        const shopBtn = document.getElementById('shopBtn');
         const modeSelection = document.getElementById('modeSelection');
         const levelSelection = document.getElementById('levelSelection');
         const modeBtns = document.querySelectorAll('.modeBtn');
         const levelBtns = document.querySelectorAll('.levelBtn');
         
+        // Элементы завершения раунда
+        const roundEndScreen = document.getElementById('roundEndScreen');
+        const finalScore = document.getElementById('finalScore');
+        const earnedCoins = document.getElementById('earnedCoins');
+        const playAgainBtn = document.getElementById('playAgainBtn');
+        const menuBtn = document.getElementById('menuBtn');
+        const shopFromEndBtn = document.getElementById('shopFromEndBtn');
+        
+        // Элементы магазина
+        const shopScreen = document.getElementById('shopScreen');
+        const currentCoins = document.getElementById('currentCoins');
+        const platformLevel = document.getElementById('platformLevel');
+        const multiplierLevel = document.getElementById('multiplierLevel');
+        const buyPlatformBtn = document.getElementById('buyPlatformBtn');
+        const buyMultiplierBtn = document.getElementById('buyMultiplierBtn');
+        const backFromShopBtn = document.getElementById('backFromShopBtn');
+        
         let playerX = 350;
         let score = 0;
+        let coins = 0;
+        let timeLeft = 40;
         let balls = [];
         let moveInterval;
         let ballCounter = 0;
@@ -262,6 +391,13 @@
         let currentMode = 'free';
         let missedBalls = 0;
         let gameActive = false;
+        let gameTimer;
+        
+        // Прокачка игрока
+        let playerUpgrades = {
+            platformLength: 1, // Уровень длины платформы
+            coinMultiplier: 1  // Множитель монет (базовый 1 монета за 10 очков)
+        };
         
         // НАСТРОЙКИ УРОВНЕЙ
         const levelSettings = {
@@ -272,15 +408,45 @@
 
         // НАСТРОЙКИ РЕЖИМОВ
         const modeSettings = {
-            free: { name: "Свободная игра", description: "Классический режим" },
+            free: { name: "Свободная игра", description: "40 секунд на раунд" },
             survival: { name: "Выживание", description: "Шары ускоряются со временем" },
             accuracy: { name: "Точность", description: "Лови только определенные цвета" }
         };
         
+        // ИНИЦИАЛИЗАЦИЯ
+        function initGame() {
+            loadProgress();
+            updateShopUI();
+        }
+        
+        // СОХРАНЕНИЕ ПРОГРЕССА
+        function saveProgress() {
+            const progress = {
+                coins: coins,
+                upgrades: playerUpgrades
+            };
+            localStorage.setItem('ballCatcherProgress', JSON.stringify(progress));
+        }
+        
+        function loadProgress() {
+            const saved = localStorage.getItem('ballCatcherProgress');
+            if (saved) {
+                const progress = JSON.parse(saved);
+                coins = progress.coins || 0;
+                playerUpgrades = progress.upgrades || { platformLength: 1, coinMultiplier: 1 };
+                updatePlayerAppearance();
+            }
+        }
+        
         // МЕНЮ
         playBtn.addEventListener('click', () => {
             playBtn.style.display = 'none';
+            shopBtn.style.display = 'none';
             modeSelection.style.display = 'flex';
+        });
+        
+        shopBtn.addEventListener('click', () => {
+            showShop();
         });
         
         modeBtns.forEach(btn => {
@@ -291,7 +457,6 @@
                     modeSelection.style.display = 'none';
                     levelSelection.style.display = 'flex';
                 } else {
-                    // Для других режимов показываем сообщение
                     alert('Этот режим появится в следующем обновлении! 🚀');
                 }
             });
@@ -304,228 +469,114 @@
             });
         });
         
+        // ЗАВЕРШЕНИЕ РАУНДА
+        playAgainBtn.addEventListener('click', () => {
+            roundEndScreen.style.display = 'none';
+            startGame();
+        });
+        
+        menuBtn.addEventListener('click', () => {
+            roundEndScreen.style.display = 'none';
+            mainMenu.style.display = 'flex';
+            playBtn.style.display = 'block';
+            shopBtn.style.display = 'block';
+            modeSelection.style.display = 'none';
+            levelSelection.style.display = 'none';
+        });
+        
+        shopFromEndBtn.addEventListener('click', () => {
+            roundEndScreen.style.display = 'none';
+            showShop();
+        });
+        
+        // МАГАЗИН
+        function showShop() {
+            mainMenu.style.display = 'none';
+            shopScreen.style.display = 'flex';
+            updateShopUI();
+        }
+        
+        backFromShopBtn.addEventListener('click', () => {
+            shopScreen.style.display = 'none';
+            mainMenu.style.display = 'flex';
+        });
+        
+        buyPlatformBtn.addEventListener('click', () => {
+            if (coins >= 10) {
+                coins -= 10;
+                playerUpgrades.platformLength++;
+                updatePlayerAppearance();
+                saveProgress();
+                updateShopUI();
+            } else {
+                alert('Недостаточно монет!');
+            }
+        });
+        
+        buyMultiplierBtn.addEventListener('click', () => {
+            if (coins >= 10) {
+                coins -= 10;
+                playerUpgrades.coinMultiplier++;
+                saveProgress();
+                updateShopUI();
+            } else {
+                alert('Недостаточно монет!');
+            }
+        });
+        
+        function updateShopUI() {
+            currentCoins.textContent = 'Монеты: ' + coins;
+            platformLevel.textContent = 'Уровень: ' + playerUpgrades.platformLength;
+            multiplierLevel.textContent = 'Уровень: ' + playerUpgrades.coinMultiplier;
+            buyPlatformBtn.textContent = 'Купить за 10';
+            buyMultiplierBtn.textContent = 'Купить за 10';
+        }
+        
+        function updatePlayerAppearance() {
+            const baseWidth = 100;
+            const extraWidth = (playerUpgrades.platformLength - 1) * 10; // +5px с каждой стороны за уровень
+            player.style.width = (baseWidth + extraWidth) + 'px';
+        }
+        
         function startGame() {
             mainMenu.style.display = 'none';
             gameActive = true;
             score = 0;
+            timeLeft = 40;
             lives = 3;
             missedBalls = 0;
             balls.forEach(ball => ball.element.remove());
             balls = [];
             
             updateUI();
+            startTimer();
             setupGame();
         }
         
-        function gameOver() {
+        function startTimer() {
+            clearInterval(gameTimer);
+            gameTimer = setInterval(() => {
+                if (!gameActive) return;
+                
+                timeLeft--;
+                timerDisplay.textContent = 'Время: ' + timeLeft;
+                
+                if (timeLeft <= 0) {
+                    endRound();
+                }
+            }, 1000);
+        }
+        
+        function endRound() {
             gameActive = false;
+            clearInterval(gameTimer);
             clearInterval(ballInterval);
             if (moveInterval) clearInterval(moveInterval);
             
-            setTimeout(() => {
-                mainMenu.style.display = 'flex';
-                playBtn.style.display = 'block';
-                modeSelection.style.display = 'none';
-                levelSelection.style.display = 'none';
-                balls.forEach(ball => ball.element.remove());
-                balls = [];
-            }, 1500);
-        }
-        
-        function setupGame() {
-            // Автоматически определяем границы
-            const gameWidth = gameContainer.offsetWidth;
-            const maxPlayerX = gameWidth - 100; // Ширина игрока 100px
-            const maxBallX = gameWidth - 30; // Ширина шара 30px
+            // Расчет заработанных монет
+            const coinsEarned = Math.floor(score / 10) * playerUpgrades.coinMultiplier;
+            coins += coinsEarned;
             
-            function updatePlayerPosition() {
-                if (playerX < 0) playerX = 0;
-                if (playerX > maxPlayerX) playerX = maxPlayerX;
-                player.style.left = playerX + 'px';
-            }
-            
-            document.addEventListener('keydown', (e) => {
-                if (!gameActive) return;
-                if (e.key === 'ArrowLeft') playerX -= 20;
-                if (e.key === 'ArrowRight') playerX += 20;
-                updatePlayerPosition();
-            });
-            
-            // БЫСТРЫЕ КНОПКИ
-            function setupButtonControls() {
-                function handleLeftStart(e) {
-                    e.preventDefault();
-                    if (!gameActive) return;
-                    clearInterval(moveInterval);
-                    moveInterval = setInterval(() => {
-                        playerX -= 8;
-                        updatePlayerPosition();
-                    }, 16);
-                }
-                
-                function handleLeftEnd(e) {
-                    e.preventDefault();
-                    clearInterval(moveInterval);
-                }
-                
-                function handleRightStart(e) {
-                    e.preventDefault();
-                    if (!gameActive) return;
-                    clearInterval(moveInterval);
-                    moveInterval = setInterval(() => {
-                        playerX += 8;
-                        updatePlayerPosition();
-                    }, 16);
-                }
-                
-                function handleRightEnd(e) {
-                    e.preventDefault();
-                    clearInterval(moveInterval);
-                }
-                
-                leftBtn.addEventListener('touchstart', handleLeftStart, { passive: false });
-                leftBtn.addEventListener('touchend', handleLeftEnd, { passive: false });
-                rightBtn.addEventListener('touchstart', handleRightStart, { passive: false });
-                rightBtn.addEventListener('touchend', handleRightEnd, { passive: false });
-                
-                leftBtn.addEventListener('mousedown', handleLeftStart);
-                leftBtn.addEventListener('mouseup', handleLeftEnd);
-                leftBtn.addEventListener('mouseleave', handleLeftEnd);
-                rightBtn.addEventListener('mousedown', handleRightStart);
-                rightBtn.addEventListener('mouseup', handleRightEnd);
-                rightBtn.addEventListener('mouseleave', handleRightEnd);
-            }
-            
-            setupButtonControls();
-            
-            // Создание шаров с ЗОЛОТЫМИ ШАРАМИ и БОМБАМИ
-            function createBall() {
-                const ball = document.createElement('div');
-                ball.className = 'ball';
-                
-                // Исправление бага: шары не выходят за пределы экрана
-                const gameWidth = gameContainer.offsetWidth;
-                const maxBallX = gameWidth - 30; // 30px - ширина шара
-                const ballX = Math.random() * maxBallX;
-                
-                ball.style.left = ballX + 'px';
-                ball.style.top = '0px';
-                gameContainer.appendChild(ball);
-                
-                ballCounter++;
-                
-                let isGold = false;
-                let isBomb = false;
-                
-                // Проверяем каждый 20-й шар для золотого
-                if (ballCounter % 20 === 0) {
-                    ball.classList.add('gold');
-                    isGold = true;
-                } 
-                // Проверяем случай для бомбы (30% шанс)
-                else if (Math.random() < 0.3) {
-                    ball.classList.add('bomb');
-                    isBomb = true;
-                }
-                
-                const settings = levelSettings[currentLevel];
-                
-                balls.push({
-                    element: ball,
-                    x: parseInt(ballX),
-                    y: 0,
-                    speed: settings.speed + Math.random() * 2,
-                    isGold: isGold,
-                    isBomb: isBomb,
-                    targetX: playerX + 50
-                });
-            }
-            
-            // Движение и столкновения
-            function moveBalls() {
-                for (let i = balls.length - 1; i >= 0; i--) {
-                    const ball = balls[i];
-                    
-                    if (ball.isGold && gameActive) {
-                        ball.targetX = playerX + 50;
-                        const dx = ball.targetX - ball.x;
-                        ball.x += dx * 0.05;
-                        ball.element.style.left = ball.x + 'px';
-                    }
-                    
-                    ball.y += ball.speed;
-                    ball.element.style.top = ball.y + 'px';
-                    
-                    const ballBottom = ball.y + 30;
-                    const playerTop = 480;
-                    
-                    if (ballBottom >= playerTop && 
-                        ball.x + 30 >= playerX && 
-                        ball.x <= playerX + 100) {
-                        
-                        if (ball.isGold) {
-                            score += 50;
-                        } else if (ball.isBomb) {
-                            score -= 20; // -20 очков за бомбу
-                            if (score < 0) score = 0;
-                        } else {
-                            score += 10;
-                        }
-                        
-                        updateUI();
-                        ball.element.remove();
-                        balls.splice(i, 1);
-                        continue;
-                    }
-                    
-                    if (ball.y > 500) {
-                        ball.element.remove();
-                        balls.splice(i, 1);
-                        // Если пропустили бомбу - не теряем жизнь
-                        if (!ball.isBomb) {
-                            missedBalls++;
-                            
-                            if (missedBalls >= 10) {
-                                lives--;
-                                missedBalls = 0;
-                                updateUI();
-                                
-                                if (lives <= 0) {
-                                    gameOver();
-                                }
-                            }
-                        }
-                    }
-                }
-            }
-            
-            // Запуск игры
-            const settings = levelSettings[currentLevel];
-            const ballInterval = setInterval(() => {
-                if (!gameActive) {
-                    clearInterval(ballInterval);
-                    return;
-                }
-                createBall();
-            }, settings.interval);
-            
-            function gameLoop() {
-                if (!gameActive) return;
-                moveBalls();
-                requestAnimationFrame(gameLoop);
-            }
-            gameLoop();
-            updatePlayerPosition();
-        }
-        
-        function updateUI() {
-            scoreDisplay.textContent = 'Очки: ' + score;
-            livesDisplay.textContent = 'Жизни: ' + lives;
-            levelDisplay.textContent = 'Уровень: ' + currentLevel + ' (' + levelSettings[currentLevel].name + ')';
-            modeDisplay.textContent = 'Режим: ' + modeSettings[currentMode].name;
-        }
-        
-        document.addEventListener('contextmenu', (e) => e.preventDefault());
-    </script>
-</body>
-</html>
+            // Показ экрана завершения
+            finalScore.textContent = 'Очки: ' + score;
+           
