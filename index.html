@@ -31,6 +31,7 @@
             border-radius: 15px;
             position: relative;
             overflow: hidden;
+            transition: box-shadow 0.3s ease;
         }
         #player {
             position: absolute;
@@ -263,6 +264,14 @@
         let missedBalls = 0;
         let gameActive = false;
         
+        // НОВЫЕ ПЕРЕМЕННЫЕ ДЛЯ ПУЛЬСИРУЮЩЕГО ВРЕМЕНИ
+        let timePulsing = false;
+        let pulsePhase = 0;
+        let pulseTimer = 0;
+        let lastPulseTime = 0;
+        const PULSE_COOLDOWN = 20000;
+        const PULSE_CHANCE = 0.25;
+        
         // НАСТРОЙКИ УРОВНЕЙ
         const levelSettings = {
             1: { speed: 2, interval: 800, name: "Лёгкий" },
@@ -310,6 +319,9 @@
             score = 0;
             lives = 3;
             missedBalls = 0;
+            timePulsing = false;
+            pulseTimer = 0;
+            lastPulseTime = 0;
             balls.forEach(ball => ball.element.remove());
             balls = [];
             
@@ -400,6 +412,21 @@
             
             // Создание шаров с ЗОЛОТЫМИ ШАРАМИ и БОМБАМИ
             function createBall() {
+                // ПРОВЕРКА ЗАПУСКА ПУЛЬСАЦИИ
+                const currentTime = Date.now();
+                if (!timePulsing && currentTime - lastPulseTime > PULSE_COOLDOWN && Math.random() < PULSE_CHANCE) {
+                    timePulsing = true;
+                    pulseTimer = 0;
+                    lastPulseTime = currentTime;
+                    
+                    // Визуальный эффект - мерцание
+                    gameContainer.style.boxShadow = '0 0 30px blue';
+                    setTimeout(() => {
+                        gameContainer.style.boxShadow = '0 0 10px blue';
+                        setTimeout(() => gameContainer.style.boxShadow = '', 200);
+                    }, 200);
+                }
+                
                 const ball = document.createElement('div');
                 ball.className = 'ball';
                 
@@ -443,6 +470,27 @@
             
             // Движение и столкновения
             function moveBalls() {
+                // ПРИМЕНЕНИЕ ЭФФЕКТА ПУЛЬСАЦИИ К СКОРОСТИ ШАРОВ
+                let speedMultiplier = 1;
+                if (timePulsing) {
+                    pulseTimer++;
+                    
+                    // Определение фазы пульсации
+                    if (pulseTimer < 12) pulsePhase = 1; // Ускорение 3 сек
+                    else if (pulseTimer < 20) pulsePhase = 0; // Норма 2 сек
+                    else if (pulseTimer < 36) pulsePhase = 2; // Замедление 4 сек
+                    else if (pulseTimer < 44) pulsePhase = 0; // Норма 2 сек
+                    else if (pulseTimer < 60) pulsePhase = 3; // Случайная 4 сек
+                    else {
+                        timePulsing = false; // Завершение через 15 секунд
+                        pulsePhase = 0;
+                    }
+                    
+                    if (pulsePhase === 1) speedMultiplier = 2.0; // Ускорение
+                    else if (pulsePhase === 2) speedMultiplier = 0.33; // Замедление
+                    else if (pulsePhase === 3) speedMultiplier = Math.random() > 0.5 ? 1.5 : 0.5; // Случайная
+                }
+                
                 for (let i = balls.length - 1; i >= 0; i--) {
                     const ball = balls[i];
                     
@@ -453,7 +501,8 @@
                         ball.element.style.left = ball.x + 'px';
                     }
                     
-                    ball.y += ball.speed;
+                    // ПРИМЕНЕНИЕ МНОЖИТЕЛЯ СКОРОСТИ
+                    ball.y += ball.speed * speedMultiplier;
                     ball.element.style.top = ball.y + 'px';
                     
                     const ballBottom = ball.y + 30;
@@ -470,6 +519,10 @@
                             if (score < 0) score = 0;
                         } else {
                             score += 10;
+                            // БОНУС ЗА ЛОВЛЮ ВО ВРЕМЯ ПУЛЬСАЦИИ
+                            if (timePulsing) {
+                                score += 2;
+                            }
                         }
                         
                         updateUI();
@@ -483,49 +536,4 @@
                         balls.splice(i, 1);
                         // Если пропустили бомбу - не теряем жизнь
                         if (!ball.isBomb) {
-                            missedBalls++;
-                            
-                            if (missedBalls >= 10) {
-                                lives--;
-                                missedBalls = 0;
-                                updateUI();
-                                
-                                if (lives <= 0) {
-                                    gameOver();
-                                }
-                            }
-                        }
-                    }
-                }
-            }
-            
-            // Запуск игры
-            const settings = levelSettings[currentLevel];
-            const ballInterval = setInterval(() => {
-                if (!gameActive) {
-                    clearInterval(ballInterval);
-                    return;
-                }
-                createBall();
-            }, settings.interval);
-            
-            function gameLoop() {
-                if (!gameActive) return;
-                moveBalls();
-                requestAnimationFrame(gameLoop);
-            }
-            gameLoop();
-            updatePlayerPosition();
-        }
-        
-        function updateUI() {
-            scoreDisplay.textContent = 'Очки: ' + score;
-            livesDisplay.textContent = 'Жизни: ' + lives;
-            levelDisplay.textContent = 'Уровень: ' + currentLevel + ' (' + levelSettings[currentLevel].name + ')';
-            modeDisplay.textContent = 'Режим: ' + modeSettings[currentMode].name;
-        }
-        
-        document.addEventListener('contextmenu', (e) => e.preventDefault());
-    </script>
-</body>
-</html>
+ 
