@@ -73,9 +73,29 @@
                 transform: scale(1.1);
             }
         }
-
-        /* СТИЛИ ДЛЯ ЭКРАНОВ */
-        .screen {
+        #score {
+            font-size: 24px;
+            margin: 10px;
+            color: #00ff88;
+        }
+        #lives {
+            font-size: 20px;
+            color: #ff6b6b;
+            margin: 10px;
+        }
+        #level {
+            font-size: 20px;
+            color: #00ccff;
+            margin: 10px;
+        }
+        #mode {
+            font-size: 20px;
+            color: #ffd700;
+            margin: 10px;
+        }
+        
+        /* МЕНЮ */
+        #mainMenu {
             position: fixed;
             top: 0;
             left: 0;
@@ -86,11 +106,11 @@
             flex-direction: column;
             justify-content: center;
             align-items: center;
+            z-index: 1000;
         }
-        
-        .btn {
+        .menuBtn {
             padding: 15px 30px;
-            font-size: 18px;
+            font-size: 20px;
             background: linear-gradient(45deg, #00ff88, #00ccff);
             border: none;
             border-radius: 25px;
@@ -98,8 +118,40 @@
             cursor: pointer;
             margin: 10px;
             width: 200px;
+            box-shadow: 0 0 20px rgba(0, 255, 136, 0.5);
         }
-
+        .modeBtn {
+            padding: 15px 30px;
+            font-size: 18px;
+            background: linear-gradient(45deg, #ff6b6b, #ffd93d);
+            border: none;
+            border-radius: 20px;
+            color: white;
+            cursor: pointer;
+            margin: 8px;
+            width: 220px;
+        }
+        .levelBtn {
+            padding: 12px 25px;
+            font-size: 18px;
+            background: linear-gradient(45deg, #4ECDC4, #556270);
+            border: none;
+            border-radius: 20px;
+            color: white;
+            cursor: pointer;
+            margin: 8px;
+            width: 180px;
+        }
+        #modeSelection {
+            display: none;
+            flex-direction: column;
+            align-items: center;
+        }
+        #levelSelection {
+            display: none;
+            flex-direction: column;
+            align-items: center;
+        }
         #mobileControls {
             display: flex;
             justify-content: center;
@@ -114,352 +166,366 @@
             border-radius: 50%;
             font-size: 30px;
             font-weight: bold;
-            background: linear-gradient(45deg, #ff0000, #ff8000);
-            color: white;
             cursor: pointer;
+            background: linear-gradient(45deg, #ff0000, #ff8000, #ffff00, #00ff00, #00ffff, #0000ff, #8000ff, #ff00ff);
+            background-size: 400% 400%;
+            animation: rainbow 3s ease infinite;
+            box-shadow: 0 0 20px rgba(255,255,255,0.5);
+            color: white;
+            text-shadow: 1px 1px 2px black;
+            touch-action: manipulation;
+            -webkit-tap-highlight-color: transparent;
+        }
+        .controlBtn:active {
+            transform: scale(0.95);
+        }
+        @keyframes rainbow {
+            0% { background-position: 0% 50%; }
+            50% { background-position: 100% 50%; }
+            100% { background-position: 0% 50%; }
+        }
+        #version {
+            position: fixed;
+            bottom: 10px;
+            right: 10px;
+            font-size: 12px;
+            background: linear-gradient(45deg, #ff0000, #ff8000, #ffff00, #00ff00, #00ffff, #0000ff, #8000ff, #ff00ff);
+            background-size: 400% 400%;
+            animation: rainbow 3s ease infinite;
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+            padding: 5px;
+            border-radius: 10px;
+            font-weight: bold;
         }
     </style>
 </head>
 <body>
-    <h1>🎮 ЛОВЕЦ ШАРОВ 🎮</h1>
+    <h1>🎮 ЛОВЕЦ ШАРОВ v3.0 🎮</h1>
     <div id="score">Очки: 0</div>
-    <div id="coins">Монеты: 0</div>
-    <div id="timer">Время: 40</div>
-
+    <div id="lives">Жизни: 3</div>
+    <div id="level">Уровень: 1</div>
+    <div id="mode">Режим: Свободная игра</div>
+    
     <div id="gameContainer">
         <div id="player"></div>
     </div>
 
     <!-- ГЛАВНОЕ МЕНЮ -->
-    <div id="mainMenu" class="screen">
+    <div id="mainMenu">
         <h1 style="font-size: 48px; color: #00ff88; margin-bottom: 30px;">🎯 ЛОВЕЦ ШАРОВ</h1>
-        <button class="btn" onclick="showModeSelection()">ИГРАТЬ</button>
-        <button class="btn" onclick="showShop()">МАГАЗИН</button>
-    </div>
-
-    <!-- ВЫБОР РЕЖИМА -->
-    <div id="modeSelection" class="screen" style="display: none;">
-        <h2 style="color: #ffd700; margin-bottom: 20px;">ВЫБЕРИ РЕЖИМ</h2>
-        <button class="btn" onclick="selectMode('free')">🎮 Свободная игра</button>
-        <button class="btn" onclick="alert('Скоро!')">⚡ Выживание</button>
-        <button class="btn" onclick="alert('Скоро!')">🎯 Точность</button>
-        <button class="btn" onclick="showMainMenu()">Назад</button>
-    </div>
-
-    <!-- ВЫБОР УРОВНЯ -->
-    <div id="levelSelection" class="screen" style="display: none;">
-        <h2 style="color: #00ccff; margin-bottom: 20px;">ВЫБЕРИ УРОВЕНЬ</h2>
-        <button class="btn" onclick="startGame(1)">🎮 Уровень 1</button>
-        <button class="btn" onclick="startGame(2)">⚡ Уровень 2</button>
-        <button class="btn" onclick="startGame(3)">🔥 Уровень 3</button>
-        <button class="btn" onclick="showModeSelection()">Назад</button>
-    </div>
-
-    <!-- МАГАЗИН -->
-    <div id="shopScreen" class="screen" style="display: none;">
-        <h1 style="color: #ffd700; margin-bottom: 20px;">🛒 МАГАЗИН</h1>
-        <div style="color: #00ff88; margin-bottom: 20px;">Монеты: <span id="shopCoins">0</span></div>
-        
-        <div style="background: #1a1a2e; padding: 15px; margin: 10px; border-radius: 10px;">
-            <h3>📏 Длина платформы</h3>
-            <div>Уровень: <span id="platformLevel">1</span></div>
-            <button class="btn" onclick="buyUpgrade('platform')">Купить за 10</button>
+        <button class="menuBtn" id="playBtn">ИГРАТЬ</button>
+        <div id="modeSelection">
+            <h2 style="color: #ffd700; margin-bottom: 20px;">ВЫБЕРИ РЕЖИМ</h2>
+            <button class="modeBtn" data-mode="free">🎮 Свободная игра</button>
+            <button class="modeBtn" data-mode="survival">⚡ Выживание (скоро!)</button>
+            <button class="modeBtn" data-mode="accuracy">🎯 Точность (скоро!)</button>
         </div>
-        
-        <div style="background: #1a1a2e; padding: 15px; margin: 10px; border-radius: 10px;">
-            <h3>💰 Множитель денег</h3>
-            <div>Уровень: <span id="multiplierLevel">1</span></div>
-            <button class="btn" onclick="buyUpgrade('multiplier')">Купить за 10</button>
+        <div id="levelSelection">
+            <h2 style="color: #00ccff; margin-bottom: 20px;">ВЫБЕРИ УРОВЕНЬ СЛОЖНОСТИ</h2>
+            <button class="levelBtn" data-level="1">🎮 Уровень 1 (Лёгкий)</button>
+            <button class="levelBtn" data-level="2">⚡ Уровень 2 (Средний)</button>
+            <button class="levelBtn" data-level="3">🔥 Уровень 3 (Сложный)</button>
         </div>
-        
-        <button class="btn" onclick="showMainMenu()">Назад</button>
-    </div>
-
-    <!-- ЭКРАН КОНЦА РАУНДА -->
-    <div id="endScreen" class="screen" style="display: none;">
-        <h1 style="color: #00ff88;">🎉 Раунд закончен!</h1>
-        <div style="color: #ffd700; margin: 20px; font-size: 24px;">
-            Очки: <span id="finalScore">0</span>
-        </div>
-        <div style="color: #ffd700; margin: 20px; font-size: 24px;">
-            Монеты: +<span id="earnedCoins">0</span>
-        </div>
-        <button class="btn" onclick="restartGame()">Играть снова</button>
-        <button class="btn" onclick="showMainMenu()">Меню</button>
-        <button class="btn" onclick="showShop()">Магазин</button>
     </div>
 
     <div id="mobileControls">
-        <button class="controlBtn" onmousedown="moveLeft()" ontouchstart="moveLeft()" onmouseup="stopMove()" ontouchend="stopMove()">←</button>
-        <button class="controlBtn" onmousedown="moveRight()" ontouchstart="moveRight()" onmouseup="stopMove()" ontouchend="stopMove()">→</button>
+        <button class="controlBtn" id="leftBtn">←</button>
+        <button class="controlBtn" id="rightBtn">→</button>
     </div>
 
+    <div id="version">v3.0</div>
+
     <script>
-        // ПЕРЕМЕННЫЕ ИГРЫ
+        const gameContainer = document.getElementById('gameContainer');
+        const player = document.getElementById('player');
+        const scoreDisplay = document.getElementById('score');
+        const livesDisplay = document.getElementById('lives');
+        const levelDisplay = document.getElementById('level');
+        const modeDisplay = document.getElementById('mode');
+        const leftBtn = document.getElementById('leftBtn');
+        const rightBtn = document.getElementById('rightBtn');
+        const mainMenu = document.getElementById('mainMenu');
+        const playBtn = document.getElementById('playBtn');
+        const modeSelection = document.getElementById('modeSelection');
+        const levelSelection = document.getElementById('levelSelection');
+        const modeBtns = document.querySelectorAll('.modeBtn');
+        const levelBtns = document.querySelectorAll('.levelBtn');
+        
         let playerX = 350;
         let score = 0;
-        let coins = 0;
-        let timeLeft = 40;
         let balls = [];
         let moveInterval;
+        let ballCounter = 0;
+        let lives = 3;
+        let currentLevel = 1;
+        let currentMode = 'free';
+        let missedBalls = 0;
         let gameActive = false;
-        let gameTimer;
-        let ballInterval;
         
-        // ПРОКАЧКА
-        let playerUpgrades = {
-            platformLength: 1,
-            coinMultiplier: 1
-        };
-
         // НАСТРОЙКИ УРОВНЕЙ
         const levelSettings = {
-            1: { speed: 2, interval: 800 },
-            2: { speed: 3, interval: 600 },
-            3: { speed: 4, interval: 400 }
+            1: { speed: 2, interval: 800, name: "Лёгкий" },
+            2: { speed: 3, interval: 600, name: "Средний" },
+            3: { speed: 4, interval: 400, name: "Сложный" }
         };
 
-        // ФУНКЦИИ МЕНЮ
-        function showMainMenu() {
-            hideAllScreens();
-            document.getElementById('mainMenu').style.display = 'flex';
-        }
-
-        function showModeSelection() {
-            hideAllScreens();
-            document.getElementById('modeSelection').style.display = 'flex';
-        }
-
-        function selectMode(mode) {
-            hideAllScreens();
-            document.getElementById('levelSelection').style.display = 'flex';
-        }
-
-        function showShop() {
-            hideAllScreens();
-            document.getElementById('shopCoins').textContent = coins;
-            document.getElementById('platformLevel').textContent = playerUpgrades.platformLength;
-            document.getElementById('multiplierLevel').textContent = playerUpgrades.coinMultiplier;
-            document.getElementById('shopScreen').style.display = 'flex';
-        }
-
-        function hideAllScreens() {
-            document.querySelectorAll('.screen').forEach(screen => {
-                screen.style.display = 'none';
-            });
-        }
-
-        // МАГАЗИН
-        function buyUpgrade(type) {
-            if (coins >= 10) {
-                coins -= 10;
-                if (type === 'platform') {
-                    playerUpgrades.platformLength++;
-                    updatePlayerSize();
+        // НАСТРОЙКИ РЕЖИМОВ
+        const modeSettings = {
+            free: { name: "Свободная игра", description: "Классический режим" },
+            survival: { name: "Выживание", description: "Шары ускоряются со временем" },
+            accuracy: { name: "Точность", description: "Лови только определенные цвета" }
+        };
+        
+        // МЕНЮ
+        playBtn.addEventListener('click', () => {
+            playBtn.style.display = 'none';
+            modeSelection.style.display = 'flex';
+        });
+        
+        modeBtns.forEach(btn => {
+            btn.addEventListener('click', () => {
+                const mode = btn.dataset.mode;
+                if (mode === 'free') {
+                    currentMode = mode;
+                    modeSelection.style.display = 'none';
+                    levelSelection.style.display = 'flex';
                 } else {
-                    playerUpgrades.coinMultiplier++;
+                    // Для других режимов показываем сообщение
+                    alert('Этот режим появится в следующем обновлении! 🚀');
                 }
-                saveProgress();
-                showShop();
-            } else {
-                alert('Недостаточно монет!');
-            }
-        }
-
-        // ИГРА
-        function startGame(level) {
-            hideAllScreens();
+            });
+        });
+        
+        levelBtns.forEach(btn => {
+            btn.addEventListener('click', () => {
+                currentLevel = parseInt(btn.dataset.level);
+                startGame();
+            });
+        });
+        
+        function startGame() {
+            mainMenu.style.display = 'none';
             gameActive = true;
             score = 0;
-            timeLeft = 40;
-            
-            // Очистка шаров
+            lives = 3;
+            missedBalls = 0;
             balls.forEach(ball => ball.element.remove());
             balls = [];
             
             updateUI();
-            startTimer();
-            startBallCreation(level);
-            gameLoop();
+            setupGame();
         }
-
-        function startTimer() {
-            clearInterval(gameTimer);
-            gameTimer = setInterval(() => {
-                timeLeft--;
-                document.getElementById('timer').textContent = 'Время: ' + timeLeft;
-                
-                if (timeLeft <= 0) {
-                    endGame();
-                }
-            }, 1000);
-        }
-
-        function startBallCreation(level) {
-            clearInterval(ballInterval);
-            const settings = levelSettings[level];
-            ballInterval = setInterval(() => {
-                if (!gameActive) return;
-                createBall(settings);
-            }, settings.interval);
-        }
-
-        function createBall(settings) {
-            const ball = document.createElement('div');
-            ball.className = 'ball';
-            
-            const gameWidth = document.getElementById('gameContainer').offsetWidth;
-            const ballX = Math.random() * (gameWidth - 30);
-            
-            ball.style.left = ballX + 'px';
-            ball.style.top = '0px';
-            document.getElementById('gameContainer').appendChild(ball);
-            
-            const isGold = Math.random() < 0.05; // 5% шанс золотого
-            const isBomb = Math.random() < 0.3; // 30% шанс бомбы
-            
-            if (isGold) ball.classList.add('gold');
-            if (isBomb) ball.classList.add('bomb');
-            
-            balls.push({
-                element: ball,
-                x: parseInt(ballX),
-                y: 0,
-                speed: settings.speed + Math.random() * 2,
-                isGold: isGold,
-                isBomb: isBomb
-            });
-        }
-
-        function gameLoop() {
-            if (!gameActive) return;
-            
-            // Движение шаров
-            for (let i = balls.length - 1; i >= 0; i--) {
-                const ball = balls[i];
-                ball.y += ball.speed;
-                ball.element.style.top = ball.y + 'px';
-                
-                // Проверка столкновения
-                const ballRect = ball.element.getBoundingClientRect();
-                const playerRect = document.getElementById('player').getBoundingClientRect();
-                
-                if (ballRect.bottom >= playerRect.top && 
-                    ballRect.right >= playerRect.left && 
-                    ballRect.left <= playerRect.right) {
-                    
-                    if (ball.isGold) {
-                        score += 50;
-                    } else if (ball.isBomb) {
-                        score = Math.max(0, score - 20);
-                    } else {
-                        score += 10;
-                    }
-                    
-                    ball.element.remove();
-                    balls.splice(i, 1);
-                    updateUI();
-                    continue;
-                }
-                
-                // Шар ушел за экран
-                if (ball.y > 500) {
-                    ball.element.remove();
-                    balls.splice(i, 1);
-                }
-            }
-            
-            requestAnimationFrame(gameLoop);
-        }
-
-        function endGame() {
+        
+        function gameOver() {
             gameActive = false;
-            clearInterval(gameTimer);
             clearInterval(ballInterval);
-            clearInterval(moveInterval);
+            if (moveInterval) clearInterval(moveInterval);
             
-            // Начисление монет
-            const earned = Math.floor(score / 10) * playerUpgrades.coinMultiplier;
-            coins += earned;
+            setTimeout(() => {
+                mainMenu.style.display = 'flex';
+                playBtn.style.display = 'block';
+                modeSelection.style.display = 'none';
+                levelSelection.style.display = 'none';
+                balls.forEach(ball => ball.element.remove());
+                balls = [];
+            }, 1500);
+        }
+        
+        function setupGame() {
+            // Автоматически определяем границы
+            const gameWidth = gameContainer.offsetWidth;
+            const maxPlayerX = gameWidth - 100; // Ширина игрока 100px
+            const maxBallX = gameWidth - 30; // Ширина шара 30px
             
-            document.getElementById('finalScore').textContent = score;
-            document.getElementById('earnedCoins').textContent = earned;
-            document.getElementById('endScreen').style.display = 'flex';
-            
-            saveProgress();
-            updateUI();
-        }
-
-        function restartGame() {
-            hideAllScreens();
-            startGame(1); // Запускаем с 1 уровнем
-        }
-
-        // УПРАВЛЕНИЕ
-        function moveLeft() {
-            if (!gameActive) return;
-            clearInterval(moveInterval);
-            moveInterval = setInterval(() => {
-                playerX = Math.max(0, playerX - 8);
-                document.getElementById('player').style.left = playerX + 'px';
-            }, 16);
-        }
-
-        function moveRight() {
-            if (!gameActive) return;
-            clearInterval(moveInterval);
-            moveInterval = setInterval(() => {
-                const gameWidth = document.getElementById('gameContainer').offsetWidth;
-                const playerWidth = parseInt(document.getElementById('player').style.width);
-                playerX = Math.min(gameWidth - playerWidth, playerX + 8);
-                document.getElementById('player').style.left = playerX + 'px';
-            }, 16);
-        }
-
-        function stopMove() {
-            clearInterval(moveInterval);
-        }
-
-        // УТИЛИТЫ
-        function updateUI() {
-            document.getElementById('score').textContent = 'Очки: ' + score;
-            document.getElementById('coins').textContent = 'Монеты: ' + coins;
-        }
-
-        function updatePlayerSize() {
-            const baseWidth = 100;
-            const extraWidth = (playerUpgrades.platformLength - 1) * 10;
-            document.getElementById('player').style.width = (baseWidth + extraWidth) + 'px';
-        }
-
-        function saveProgress() {
-            localStorage.setItem('gameProgress', JSON.stringify({
-                coins: coins,
-                upgrades: playerUpgrades
-            }));
-        }
-
-        function loadProgress() {
-            const saved = localStorage.getItem('gameProgress');
-            if (saved) {
-                const progress = JSON.parse(saved);
-                coins = progress.coins || 0;
-                playerUpgrades = progress.upgrades || { platformLength: 1, coinMultiplier: 1 };
-                updatePlayerSize();
-                updateUI();
+            function updatePlayerPosition() {
+                if (playerX < 0) playerX = 0;
+                if (playerX > maxPlayerX) playerX = maxPlayerX;
+                player.style.left = playerX + 'px';
             }
-        }
-
-        // ЗАГРУЗКА ИГРЫ
-        window.addEventListener('load', () => {
-            loadProgress();
+            
             document.addEventListener('keydown', (e) => {
                 if (!gameActive) return;
-                if (e.key === 'ArrowLeft') moveLeft();
-                if (e.key === 'ArrowRight') moveRight();
+                if (e.key === 'ArrowLeft') playerX -= 20;
+                if (e.key === 'ArrowRight') playerX += 20;
+                updatePlayerPosition();
             });
-            document.addEventListener('keyup', stopMove);
-        });
+            
+            // БЫСТРЫЕ КНОПКИ
+            function setupButtonControls() {
+                function handleLeftStart(e) {
+                    e.preventDefault();
+                    if (!gameActive) return;
+                    clearInterval(moveInterval);
+                    moveInterval = setInterval(() => {
+                        playerX -= 8;
+                        updatePlayerPosition();
+                    }, 16);
+                }
+                
+                function handleLeftEnd(e) {
+                    e.preventDefault();
+                    clearInterval(moveInterval);
+                }
+                
+                function handleRightStart(e) {
+                    e.preventDefault();
+                    if (!gameActive) return;
+                    clearInterval(moveInterval);
+                    moveInterval = setInterval(() => {
+                        playerX += 8;
+                        updatePlayerPosition();
+                    }, 16);
+                }
+                
+                function handleRightEnd(e) {
+                    e.preventDefault();
+                    clearInterval(moveInterval);
+                }
+                
+                leftBtn.addEventListener('touchstart', handleLeftStart, { passive: false });
+                leftBtn.addEventListener('touchend', handleLeftEnd, { passive: false });
+                rightBtn.addEventListener('touchstart', handleRightStart, { passive: false });
+                rightBtn.addEventListener('touchend', handleRightEnd, { passive: false });
+                
+                leftBtn.addEventListener('mousedown', handleLeftStart);
+                leftBtn.addEventListener('mouseup', handleLeftEnd);
+                leftBtn.addEventListener('mouseleave', handleLeftEnd);
+                rightBtn.addEventListener('mousedown', handleRightStart);
+                rightBtn.addEventListener('mouseup', handleRightEnd);
+                rightBtn.addEventListener('mouseleave', handleRightEnd);
+            }
+            
+            setupButtonControls();
+            
+            // Создание шаров с ЗОЛОТЫМИ ШАРАМИ и БОМБАМИ
+            function createBall() {
+                const ball = document.createElement('div');
+                ball.className = 'ball';
+                
+                // Исправление бага: шары не выходят за пределы экрана
+                const gameWidth = gameContainer.offsetWidth;
+                const maxBallX = gameWidth - 30; // 30px - ширина шара
+                const ballX = Math.random() * maxBallX;
+                
+                ball.style.left = ballX + 'px';
+                ball.style.top = '0px';
+                gameContainer.appendChild(ball);
+                
+                ballCounter++;
+                
+                let isGold = false;
+                let isBomb = false;
+                
+                // Проверяем каждый 20-й шар для золотого
+                if (ballCounter % 20 === 0) {
+                    ball.classList.add('gold');
+                    isGold = true;
+                } 
+                // Проверяем случай для бомбы (30% шанс)
+                else if (Math.random() < 0.3) {
+                    ball.classList.add('bomb');
+                    isBomb = true;
+                }
+                
+                const settings = levelSettings[currentLevel];
+                
+                balls.push({
+                    element: ball,
+                    x: parseInt(ballX),
+                    y: 0,
+                    speed: settings.speed + Math.random() * 2,
+                    isGold: isGold,
+                    isBomb: isBomb,
+                    targetX: playerX + 50
+                });
+            }
+            
+            // Движение и столкновения
+            function moveBalls() {
+                for (let i = balls.length - 1; i >= 0; i--) {
+                    const ball = balls[i];
+                    
+                    if (ball.isGold && gameActive) {
+                        ball.targetX = playerX + 50;
+                        const dx = ball.targetX - ball.x;
+                        ball.x += dx * 0.05;
+                        ball.element.style.left = ball.x + 'px';
+                    }
+                    
+                    ball.y += ball.speed;
+                    ball.element.style.top = ball.y + 'px';
+                    
+                    const ballBottom = ball.y + 30;
+                    const playerTop = 480;
+                    
+                    if (ballBottom >= playerTop && 
+                        ball.x + 30 >= playerX && 
+                        ball.x <= playerX + 100) {
+                        
+                        if (ball.isGold) {
+                            score += 50;
+                        } else if (ball.isBomb) {
+                            score -= 20; // -20 очков за бомбу
+                            if (score < 0) score = 0;
+                        } else {
+                            score += 10;
+                        }
+                        
+                        updateUI();
+                        ball.element.remove();
+                        balls.splice(i, 1);
+                        continue;
+                    }
+                    
+                    if (ball.y > 500) {
+                        ball.element.remove();
+                        balls.splice(i, 1);
+                        // Если пропустили бомбу - не теряем жизнь
+                        if (!ball.isBomb) {
+                            missedBalls++;
+                            
+                            if (missedBalls >= 10) {
+                                lives--;
+                                missedBalls = 0;
+                                updateUI();
+                                
+                                if (lives <= 0) {
+                                    gameOver();
+                                }
+                            }
+                        }
+                    }
+                }
+            }
+            
+            // Запуск игры
+            const settings = levelSettings[currentLevel];
+            const ballInterval = setInterval(() => {
+                if (!gameActive) {
+                    clearInterval(ballInterval);
+                    return;
+                }
+                createBall();
+            }, settings.interval);
+            
+            function gameLoop() {
+                if (!gameActive) return;
+                moveBalls();
+                requestAnimationFrame(gameLoop);
+            }
+            gameLoop();
+            updatePlayerPosition();
+        }
+        
+        function updateUI() {
+            scoreDisplay.textContent = 'Очки: ' + score;
+            livesDisplay.textContent = 'Жизни: ' + lives;
+            levelDisplay.textContent = 'Уровень: ' + currentLevel + ' (' + levelSettings[currentLevel].name + ')';
+            modeDisplay.textContent = 'Режим: ' + modeSettings[currentMode].name;
+        }
+        
+        document.addEventListener('contextmenu', (e) => e.preventDefault());
     </script>
 </body>
 </html>
